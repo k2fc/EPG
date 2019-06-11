@@ -1,0 +1,124 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<epg>
+  <settings>
+    <Title>PROGRAM GUIDE</Title>
+    <BackColor>40,30,70</BackColor>
+    <TimeBackground>50,70,140</TimeBackground>
+    <TimeForeground>150,150,40</TimeForeground>
+    <GridBackground>10,10,50</GridBackground>
+    <GridForeground>255,255,255</GridForeground>
+    <EndBackground>128,128,128</EndBackground>
+    <EndForeground>255,255,255</EndForeground>
+    <Font>Consolas</Font>
+    <FontSize>36</FontSize>
+    <Speed>2</Speed>
+    <PauseLength>4</PauseLength>
+    <GridMargin>25</GridMargin>
+    <GridVerticalStart>130</GridVerticalStart>
+    <RowHeight>78</RowHeight>
+    <TextMargin>3</TextMargin>
+    <Fullscreen>True</Fullscreen>
+    <LookAhead>7</LookAhead>
+    <EndText>This text is at the end.</EndText>
+  </settings>
+  <channels>
+    <channel number="1.1" name="NY1" source="static" text=" Spectrum News NY1 " />
+    <channel number="2.1" name="WCBS-TV" source="XMLTV" file="offair.xml" channel_id="2:1:WCBS-HD" />
+    <channel number="2.2" name="DECADES" source="XMLTV" file="offair.xml" channel_id="2:2:DECADES" />
+    <channel number="3.1" name="THEATER" source="static" text="  Theater " />
+    <channel number="4.1" name="WNBC" source="XMLTV" file="offair.xml" channel_id="4:1:WNBC   " />
+    <channel number="4.2" name="COZI-TV" source="XMLTV" file="offair.xml" channel_id="4:2:COZI-TV" />
+    <channel number="5.1" name="WNYW" source="XMLTV" file="offair.xml" channel_id="5:1:WNYW   " />
+    <channel number="5.2" name="MOVIES!" source="XMLTV" file="offair.xml" channel_id="5:2:Movies!" />
+    <channel number="5.4" name="LIGHT" source="XMLTV" file="offair.xml" channel_id="5:4:LIGHT  " />
+    <channel number="6.1" name="CBSN" source="static" text="CBS News Stream" />
+    <channel number="7.1" name="WABC-TV" source="XMLTV" file="offair.xml" channel_id="7:1:WABC-HD" />
+    <channel number="7.2" name="LIVWELL" source="XMLTV" file="offair.xml" channel_id="7:2:LivWell" />
+    <channel number="7.3" name="LAFF" source="XMLTV" file="offair.xml" channel_id="7:3:LAFF" />
+    <channel number="8.1" name="WEATHER" source="static" text="Local Weather Information"/>
+    <channel number="9.1" name="WWOR" source="XMLTV" file="offair.xml" channel_id="9:1:WWOR-TV" />
+    <channel number="9.3" name="BUZZR" source="XMLTV" file="offair.xml" channel_id="9:3:Buzzr  " />
+    <channel number="9.4" name="HEROES" source="XMLTV" file="offair.xml" channel_id="9:4:Heroes " />
+    <channel number="10.1" name="SIGNAGE" source="static" text=" Digital Signage" />
+    <channel number="11.1" name="WPIX" source="XMLTV" file="offair.xml" channel_id="11:1:PIX11  " />
+    <channel number="11.2" name="ANTENNA" source="XMLTV" file="offair.xml" channel_id="11:2:Antenna" />
+    <channel number="11.3" name="THIS TV" source="XMLTV" file="offair.xml" channel_id="11:3:ThisTV " />
+    <channel number="11.4" name="TBD" source="XMLTV" file="offair.xml" channel_id="11:4:TBD    " />
+    <channel number="12.1" name="CBS SP HQ" source="static" text="CBS Sports HQ" />
+    <channel number="13.1" name="WNET" source="XMLTV" file="offair.xml" channel_id="13:1:WNET-HD" />
+    <channel number="13.2" name="KIDS" source="XMLTV" file="offair.xml" channel_id="13:2:KIDS" />
+    <channel number="14.1" name="WNDT-CD" source="XMLTV" file="offair.xml" channel_id="14:1:WNDT-CD" />
+    <channel number="19.1" name="FS1" source="XMLTV" file="directv.xml" channel_id="0219.directv.com" />
+    <channel number="20.1" name="FS2" source="XMLTV" file="directv.xml" channel_id="0618.directv.com" />
+    <channel number="21.1" name="WLIW" source="XMLTV" file="offair.xml" channel_id="21:1:WLIW HD" />
+    <channel number="21.2" name="CREATE" source="XMLTV" file="offair.xml" channel_id="21:2:Create" />
+    <channel number="21.3" name="WORLD" source="XMLTV" file="offair.xml" channel_id="21:3:World" />
+    <channel number="21.4" name="ALLARTS" source="XMLTV" file="offair.xml" channel_id="21:4:AllArts" />
+    <channel number="22.1" name="CBS SP" source="XMLTV" file="directv.xml" channel_id="0221.directv.com" />
+    <channel number="23.1" name="YES" source="XMLTV" file="directv.xml" channel_id="0631.directv.com" />
+    <channel number="24.1" name="SNY" source="XMLTV" file="directv.xml" channel_id="0639.directv.com" />
+    <channel number="25.1" name="WNYE-TV" source="XMLTV" file="offair.xml" channel_id="25:1:NYLIFE " />
+    <channel number="25.2" name="NYGOV" source="XMLTV" file="offair.xml" channel_id="25:2:NYGOV  " />
+    <channel number="25.3" name="CUNY" source="XMLTV" file="offair.xml" channel_id="25:3:CUNY   " />
+    <channel number="26.1" name="NYC DRIVE" source="static" text="NYC DOT Traffic Cameras" />
+    <channel number="27.1" name="ESPN" source="XMLTV" file="directv.xml" channel_id="0206.directv.com" />
+    <channel number="28.1" name="ESPN 2" source="XMLTV" file="directv.xml" channel_id="0209.directv.com" />
+    <channel number="29.1" name="MSG" source="XMLTV" file="directv.xml" channel_id="0634.directv.com" />
+    <channel number="30.1" name="MSG+" source="XMLTV" file="directv.xml" channel_id="0635.directv.com" />
+    <channel number="31.1" name="WPXN" source="XMLTV" file="offair.xml" channel_id="31:1:ION" />
+    <channel number="31.2" name="QUBO" source="XMLTV" file="offair.xml" channel_id="31:2:qubo" />
+    <channel number="31.3" name="IONLIFE" source="XMLTV" file="offair.xml" channel_id="31:3:IONLife" />
+    <channel number="31.4" name="SHOP" source="XMLTV" file="offair.xml" channel_id="31:4:Shop" />
+    <channel number="31.5" name="QVC" source="XMLTV" file="offair.xml" channel_id="31:5:QVC" />
+    <channel number="31.6" name="HSN" source="XMLTV" file="offair.xml" channel_id="31:6:HSN" />
+    <channel number="32.1" name="MLB" source="XMLTV" file="directv.xml" channel_id="0213.directv.com" />
+    <channel number="33.1" name="WJLP" source="XMLTV" file="offair.xml" channel_id="33:1:MeTV" />
+    <channel number="33.2" name="LAFF" source="XMLTV" file="offair.xml" channel_id="33:2:Laff" />
+    <channel number="33.3" name="GRIT" source="XMLTV" file="offair.xml" channel_id="33:3:Grit" />
+    <channel number="33.4" name="ESCAPE" source="XMLTV" file="offair.xml" channel_id="33:4:Escape" />
+    <channel number="33.5" name="COURT TV" source="XMLTV" file="offair.xml" channel_id="33:5:CourtTV" />
+    <channel number="33.6" name="NEWS NJ" source="XMLTV" file="offair.xml" channel_id="33:6:News NJ" />
+    <channel number="33.10" name="WJLP-WX" source="XMLTV" file="offair.xml" channel_id="33:10:WJLP-WX" />
+    <channel number="33.11" name="WKMK" source="XMLTV" file="offair.xml" channel_id="33:11:Thunder" />
+    <channel number="33.12" name="WBBO" source="XMLTV" file="offair.xml" channel_id="33:12:B985" />
+    <channel number="33.13" name="WWZY" source="XMLTV" file="offair.xml" channel_id="33:13:TheBoss" />
+    <channel number="33.14" name="WHTG" source="XMLTV" file="offair.xml" channel_id="33:14:1410 AM" />
+    <channel number="34.1" name="NBA" source="XMLTV" file="directv.xml" channel_id="0216.directv.com" />
+    <channel number="35.1" name="QUAD 1" source="static" text="Local Station Quad" />
+    <channel number="36.1" name="QUAD 2" source="static" text="Network Quad" />
+    <channel number="37.1" name="NFL" source="XMLTV" file="directv.xml" channel_id="0212.directv.com" />
+    <channel number="38.1" name="NHL" source="XMLTV" file="directv.xml" channel_id="0215.directv.com" />
+    <channel number="39.1" name="BLOOM" source="XMLTV" file="directv.xml" channel_id="0353.directv.com" />
+    <channel number="40.1" name="CNBC" source="XMLTV" file="directv.xml" channel_id="0355.directv.com" />
+    <channel number="41.1" name="WXTV" source="XMLTV" file="offair.xml" channel_id="41:1:WXTV-DT" />
+    <channel number="41.2" name="BOUNCE" source="XMLTV" file="offair.xml" channel_id="41:2:Bounce " />
+    <channel number="42.1" name="CNN" source="XMLTV" file="directv.xml" channel_id="0202.directv.com" />
+    <channel number="43.1" name="FOX NEWS" source="XMLTV" file="directv.xml" channel_id="0360.directv.com" />
+    <channel number="44.1" name="FOX BUS" source="XMLTV" file="directv.xml" channel_id="0359.directv.com" />
+    <channel number="45.1" name="BBC" source="XMLTV" file="directv.xml" channel_id="0346.directv.com" />
+    <channel number="46.1" name="WMBQ-CD" source="XMLTV" file="offair.xml" channel_id="46:1:WMBQ-CD" />
+    <channel number="47.1" name="WNJU" source="XMLTV" file="offair.xml" channel_id="47:1:WNJU-HD" />
+    <channel number="47.2" name="TELEX" source="XMLTV" file="offair.xml" channel_id="47:2:TeleX  " />
+    <channel number="48.1" name="WRNN" source="XMLTV" file="offair.xml" channel_id="48:1:WRNN-HD" />
+    <channel number="48.2" name="STADIUM" source="XMLTV" file="offair.xml" channel_id="48:2:Stadium" />
+    <channel number="48.3" name="ARIRANG" source="XMLTV" file="offair.xml" channel_id="48:3:Arirang" />
+    <channel number="49.1" name="MSNBC" source="XMLTV" file="directv.xml" channel_id="0356.directv.com" />
+    <channel number="50.1" name="WNJN" source="XMLTV" file="offair.xml" channel_id="58:1:WNJB" />
+    <channel number="50.2" name="NHK WORLD" source="XMLTV" file="offair.xml" channel_id="58:2:WNJB.2" />
+    <channel number="51.1" name="C-SPAN" source="XMLTV" file="directv.xml" channel_id="0350.directv.com" />
+    <channel number="52.1" name="C-SPAN 2" source="XMLTV" file="directv.xml" channel_id="0351.directv.com" />
+    <channel number="53.1" name="TNT" source="XMLTV" file="directv.xml" channel_id="0245.directv.com" />
+    <channel number="54.1" name="TBS" source="XMLTV" file="directv.xml" channel_id="0247.directv.com" />
+    <channel number="55.1" name="WLNY" source="XMLTV" file="directv.xml" channel_id="0055.directv.com" />
+    <channel number="56.1" name="COMEDY" source="XMLTV" file="directv.xml" channel_id="0249.directv.com" />
+    <channel number="57.1" name="HBO" source="XMLTV" file="directv.xml" channel_id="0501.directv.com" />
+    <channel number="58.1" name="WNJB" source="XMLTV" file="offair.xml" channel_id="58:1:WNJB" />
+    <channel number="58.2" name="NHK WORLD" source="XMLTV" file="offair.xml" channel_id="58:2:WNJB.2" />
+    <channel number="59.1" name="NBC SPORTS" source="XMLTV" file="directv.xml" channel_id="0220.directv.com" />
+    <channel number="60.1" name="NBCSB" source="XMLTV" file="directv.xml" channel_id="0630.directv.com" />
+    <channel number="68.1" name="WFUT" source="XMLTV" file="offair.xml" channel_id="68:1:WFUT-DT" />
+    <channel number="68.2" name="JUSTICE" source="XMLTV" file="offair.xml" channel_id="68:2:Justice" />
+    <channel number="68.3" name="GETTV" source="XMLTV" file="offair.xml" channel_id="68:3:GetTV  " />
+    <channel number="100.1" name="GUIDE" source="static" text="You are here!"/>
+  </channels>
+</epg>
