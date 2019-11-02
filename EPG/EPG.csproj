@@ -88,15 +88,15 @@
     <Content Include="rightarrow.png" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\..\..\Visual Studio 2015\Projects\EPGCollector\EPGCollector\DomainObjects\DomainObjects.csproj">
+    <ProjectReference Include="..\EPGCollector\DomainObjects\DomainObjects.csproj">
       <Project>{691c6eb5-d035-43e6-b3a9-f5131bf09916}</Project>
       <Name>DomainObjects</Name>
     </ProjectReference>
-    <ProjectReference Include="..\..\..\..\Visual Studio 2015\Projects\EPGCollector\EPGCollector\DVBServices\DVBServices.csproj">
+    <ProjectReference Include="..\EPGCollector\DVBServices\DVBServices.csproj">
       <Project>{2162b6d8-871f-4b2e-8d97-0fa2c8da76d1}</Project>
       <Name>DVBServices</Name>
     </ProjectReference>
-    <ProjectReference Include="..\..\..\..\Visual Studio 2015\Projects\EPGCollector\XmlParser\XmltvParser.csproj">
+    <ProjectReference Include="..\XmlParser\XmltvParser.csproj">
       <Project>{89ab1da3-f6bd-4fea-86dd-cb884b06a0b4}</Project>
       <Name>XmltvParser</Name>
     </ProjectReference>
