@@ -1,5 +1,5 @@
 # EPG
-Generates a scrolling electronic program guide display from an XMLTV schedule
+Generates a scrolling electronic program guide display using EPGCollector
 
 
 Settings
