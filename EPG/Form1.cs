@@ -15,78 +15,66 @@
 
 using System;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using System.Drawing;
 using System.Windows.Forms;
+using System.Threading;
 using System.Xml;
 using System.IO;
 using DomainObjects;
-using DVBServices;
 using System.Linq;
 using System.Threading.Tasks;
+using System.Diagnostics;
+using System.ComponentModel;
 
 namespace EPG
 {
     public partial class Form1 : Form
     {
-        DateTime curTime = new DateTime();
-        DateTime currentTimeSlot = new DateTime();
-        DateTime nextTimeSlot = new DateTime();
-        DateTime secondTimeSlot = new DateTime();
-        Panel gridTimeCurrent = new Panel();
-        Panel gridTimePlus30 = new Panel();
-        Panel gridTimePlus60 = new Panel();
-        //Panel newCurrentTimeSlot = new Panel();
-        //Panel newPlus30TimeSlot = new Panel();
-        //Panel newPlus60TimeSlot = new Panel();
-        Panel topMask = new Panel();
-        Panel clockPanel = new Panel();
-        Label gridTimeCurrentLabel = new Label();
-        Label gridTimePlus30Label = new Label();
-        Label gridTimePlus60Label = new Label();
-        Label clock = new Label();
-        Label title = new Label();
-        Collection<TVStation> stations = new Collection<TVStation>();
-        //Panel grid = new Panel();
-        List<Grid> grids = new List<Grid>();
-        
-
-        int gridMargin = 25;
-        int gridVerticalStart = 240;
-        int rowHeight = 34;
-        int textMargin = 3;
-        int lookahead = 0;
-        Color background;
-        Color timeBackground;
-        Color timeForeground;
-        Color gridBackground;
-        Color gridForeground;
-        Color endBackground;
-        Color endForeground;
-        Font font = new Font("Consolas",14);
-        String titletext = "";
-        String endText = "";
-
-        int gridBottom = 0;
-        int speed = 1;
-        int listingInterval = 0;
-
-        Panel pauseatbox;
-        Grid pauseatgrid;
-        int pauselength = 2;
-        DateTime pauseuntil;
-        bool paused = false;
-
-        bool doneInit = false;
-        bool dataloaded = false;
+        private DateTime curTime = new DateTime();
+        private DateTime currentTimeSlot = new DateTime();
+        private DateTime nextTimeSlot = new DateTime();
+        private DateTime secondTimeSlot = new DateTime();
+        private Panel gridTimeCurrent;
+        private Panel gridTimePlus30;
+        private Panel gridTimePlus60;
+        private readonly Panel topMask = new Panel();
+        private readonly Panel clockPanel = new Panel();
+        private readonly Label clock = new Label();
+        private readonly Label title = new Label();
+        private List<TVStation> stations = new List<TVStation>();
+        private List<Grid> grids = new List<Grid>();
+        private string runReference;
+        private Mutex cancelMutex;
+        private int gridMargin = 25;
+        private int gridVerticalStart = 240;
+        private int rowHeight = 34;
+        private int textMargin = 3;
+        private int lookahead = 0;
+        private Color background;
+        private Color timeBackground;
+        private Color timeForeground;
+        private Color gridBackground;
+        private Color gridForeground;
+        private Color endBackground;
+        private Color endForeground;
+        private Font font = new Font("Consolas",14);
+        private String titletext = "";
+        private String endText = "";
+        private int gridBottom = 0;
+        private int speed = 1;
+        private int listingInterval = 0;
+        private Panel pauseatbox;
+        private Grid pauseatgrid;
+        private int pauselength = 2;
+        private DateTime pauseuntil;
+        private bool paused = false;
+        private bool doneInit = false;
+        private bool dataloaded = false;
         public Form1()
         {
             InitializeComponent();
             this.WindowState = FormWindowState.Maximized;
-            getSettings();
-
-            
-
+            GetSettings();
 
             //create clock
             clockPanel.Top = gridVerticalStart;
@@ -117,7 +105,7 @@ namespace EPG
 
             formResize(null, null);
             
-            Task.Run(() => getGuideData());
+            Task.Run(() => GetGuideData());
 
             title.Top = 0;
             title.Left = 0;
@@ -132,11 +120,17 @@ namespace EPG
 
         private void timer1_Tick(object sender, EventArgs e)
         {
-            //radioButton1.Top = gridBottom;
             curTime = DateTime.Now;
             clock.Text = curTime.ToString("h:mm:ss");
+            List<Grid> murdergrids = grids.Where(x => x.Bottom <= clockPanel.Top).ToList();
+            foreach (Grid murdergrid in murdergrids)
+            {
+                foreach (Control control in murdergrid.Controls)
+                    control.Dispose();
+                murdergrid.Controls.Clear();
+                murdergrid.Dispose();
+            }
             grids = grids.Where(x => x.Bottom >= clockPanel.Top).ToList();
-            //title.Text = grids.Count.ToString();
             if (paused) 
             {
                 if (curTime > pauseuntil)
@@ -163,7 +157,7 @@ namespace EPG
                         if (!foundnextpause)
                         {
                             pauseatgrid = grid;
-                            pauseatbox = (Panel)grid.Controls[6];
+                            pauseatbox = (Panel)grid.Controls[grid.Controls.Count - 1];
                         }
                     }
                     else if (grid.Top < this.Height && !foundnextpause)
@@ -184,7 +178,7 @@ namespace EPG
                         if (!foundnextpause)
                         {
                             pauseatgrid = grid;
-                            pauseatbox = (Panel)grid.Controls[5]; 
+                            pauseatbox = (Panel)grid.Controls[grid.Controls.Count -1]; 
                         }
                     }
                 }
@@ -201,8 +195,6 @@ namespace EPG
          
             else {
 
-                //gridBottom = (from box in grid select box.Bottom).Max();
-                //grid.All(box => { box.Top-= speed; return true; });
                 gridBottom -= speed;
                 foreach (Grid grid in grids)
                 {
@@ -213,12 +205,9 @@ namespace EPG
                     {
                         if (grid.newCurrentTimeSlot.Top + grid.Top < gridTimeCurrent.Bottom)
                         {
-                            gridTimeCurrent.Top = gridTimeCurrent.Top - speed;
-                            gridTimePlus30.Top = gridTimePlus30.Top - speed;
-                            gridTimePlus60.Top = gridTimePlus60.Top - speed;
-                            //gridTimeCurrent.SendToBack();
-                            //gridTimePlus30.SendToBack();
-                            //gridTimePlus60.SendToBack();
+                            gridTimeCurrent.Top -= speed;
+                            gridTimePlus30.Top -= speed;
+                            gridTimePlus60.Top -= speed;
                             topMask.BringToFront();
                         }
 
@@ -227,9 +216,6 @@ namespace EPG
                             gridTimeCurrent.Dispose();
                             gridTimePlus30.Dispose();
                             gridTimePlus30.Dispose();
-                            //this.Controls.Remove(gridTimeCurrent);
-                            //this.Controls.Remove(gridTimePlus30);
-                            //this.Controls.Remove(gridTimePlus60);
                             gridTimeCurrent = grid.newCurrentTimeSlot;
                             gridTimePlus30 = grid.newPlus30TimeSlot;
                             gridTimePlus60 = grid.newPlus60TimeSlot;
@@ -274,7 +260,7 @@ namespace EPG
 
                             pauseuntil = curTime.AddSeconds(pauselength);
                             paused = true;
-                            getSettings();
+                            GetSettings();
 
                         }
                     }
@@ -303,18 +289,15 @@ namespace EPG
         {
             if (!doneInit || !dataloaded )
                 return;
-            getSettings();
-            //grids.Top = this.Height;
-            Grid grid = new Grid();
-            
-            grid.Left = 0;
-            grid.Width = this.Width;
-            grid.Left = 0;
-            grid.Width = this.Width;
-            do
-            {
+            GetSettings();
 
-            } while (!dataloaded);
+
+            Grid grid = new Grid
+            {
+                Left = 0,
+                Width = this.Width
+            };
+            
 
             Panel newCurrentTimeSlot = new Panel();
             Panel newPlus30TimeSlot = new Panel();
@@ -328,13 +311,15 @@ namespace EPG
             nextTimeSlot = currentTimeSlot + TimeSpan.FromMinutes(30);
             secondTimeSlot = currentTimeSlot + TimeSpan.FromMinutes(60);
 
-            Panel blank = new Panel();
-            blank.Top = 0;
-            blank.Width = clockPanel.Width;
-            blank.Height = clockPanel.Height;
-            blank.Left = clockPanel.Left;
-            blank.BackColor = timeBackground;
-            blank.BorderStyle = BorderStyle.Fixed3D;
+            Panel blank = new Panel
+            {
+                Top = 0,
+                Width = clockPanel.Width,
+                Height = clockPanel.Height,
+                Left = clockPanel.Left,
+                BackColor = timeBackground,
+                BorderStyle = BorderStyle.Fixed3D
+            };
             grid.Controls.Add(blank);
 
             newCurrentTimeSlot.Top = blank.Top;
@@ -400,13 +385,15 @@ namespace EPG
             grid.newPlus60TimeSlot = newPlus60TimeSlot;
             //gridBottom = newPlus60TimeSlot.Bottom;
 
-            blank = new Panel();
-            blank.Top = newPlus60TimeSlot.Bottom;
-            blank.Width = clockPanel.Width;
-            blank.Height = clockPanel.Height;
-            blank.Left = clockPanel.Left;
-            blank.BackColor = gridBackground;
-            blank.BorderStyle = BorderStyle.Fixed3D;
+            blank = new Panel
+            {
+                Top = newPlus60TimeSlot.Bottom,
+                Width = clockPanel.Width,
+                Height = clockPanel.Height,
+                Left = clockPanel.Left,
+                BackColor = gridBackground,
+                BorderStyle = BorderStyle.Fixed3D
+            };
             grid.Controls.Add(blank);
 
             Panel datePanel = new Panel();
@@ -441,7 +428,7 @@ namespace EPG
             
             ////XmltvIdFormat.
             channels = configFile.GetElementsByTagName("channel");
-            foreach (XmlNode channel in channels)
+            foreach (TVStation channel in stations)
             {
                 Panel channelPanel = new Panel();
                 Label channelNum = new Label();
@@ -459,7 +446,12 @@ namespace EPG
                 channelNum.Height = channelPanel.Height / 2;
                 channelNum.Font = font;
                 channelNum.ForeColor = timeForeground;
-                channelNum.Text = channel.Attributes["number"].Value;
+                if (channel.MinorChannelNumber > -1)
+                    channelNum.Text = channel.TransportStreamID.ToString() + "." + channel.MinorChannelNumber.ToString();
+                else if (channel.LogicalChannelNumber > -1)
+                    channelNum.Text = channel.LogicalChannelNumber.ToString();
+                else
+                    channelNum.Text = channel.LogicalChannelNumber.ToString();
                 channelNum.TextAlign = ContentAlignment.MiddleCenter;
                 channelName.Top = channelNum.Bottom;
                 channelName.Left = 0;
@@ -467,135 +459,85 @@ namespace EPG
                 channelName.Height = channelPanel.Height / 2;
                 channelName.Font = font;
                 channelName.ForeColor = timeForeground;
-                channelName.Text = channel.Attributes["name"].Value;
+                channelName.Text = channel.Name;
                 channelName.TextAlign = ContentAlignment.MiddleCenter;
                 channelPanel.Controls.Add(channelNum);
                 channelPanel.Controls.Add(channelName);
                 channelPanel.SendToBack();
                 grid.Controls.Add(channelPanel);
 
-                title.Text = "Loading schedule for channel " + channel.Attributes["number"].Value;
-
-                if (channel.Attributes["source"].Value == "static")
+                try
                 {
-                    Panel staticPanel = new Panel();
-                    Label staticLabel = new Label();
-                    staticPanel.Width = channelPanel.Width * 3;
-                    staticPanel.Height = channelPanel.Height;
-                    staticPanel.Top = channelPanel.Top;
-                    staticPanel.Left = channelPanel.Right;
-                    staticPanel.BackColor = gridBackground;
-                    staticPanel.BorderStyle = BorderStyle.Fixed3D;
-                    staticPanel.SendToBack();
-                    staticLabel.Width = staticPanel.Width - (textMargin * 2);
-                    staticLabel.Height = staticPanel.Height - (textMargin * 2);
-                    staticLabel.Left = textMargin;
-                    staticLabel.Top = textMargin;
-                    staticLabel.ForeColor = gridForeground;
-                    staticLabel.Font = font;
-                    staticLabel.TextAlign = ContentAlignment.TopLeft;
-                    staticLabel.Text = channel.Attributes["text"].Value;
-                    staticPanel.Controls.Add(staticLabel);
-                    grid.Controls.Add(staticPanel);
-                }
-                else if (channel.Attributes["source"].Value == "XMLTV")
-                {
-                    try
+                    channelName.Text = channel.Name.Trim().ToUpper();
+                                                    
+                    bool noprograms = true;
+                    foreach (var program in channel.EPGCollection)
                     {
-                        TVStation station = null;
-                        foreach (var channelrecord in stations)
+                        DateTime programStartTime = program.StartTime.ToLocalTime();
+                        DateTime programEndTime = programStartTime + program.Duration;
+                        TimeSpan contThreshold = new TimeSpan(0, 2, 0);
+                        if (programStartTime < secondTimeSlot.AddMinutes(30) && programEndTime > currentTimeSlot)
                         {
-                            if (channelrecord.ProviderName == channel.Attributes["channel_id"].Value)
+                            Panel programPanel = new Panel();
+                            Label programLabel = new Label
                             {
-                                station = channelrecord;
-                                break;
+                                Text = program.EventName
+                            };
+                            if (programStartTime < currentTimeSlot && programEndTime > secondTimeSlot + new TimeSpan(0, 30, 0))
+                            {
+                                programPanel.Left = clockPanel.Right;
+                                programPanel.Width = clockPanel.Width * 3;
+                                programLabel.Text = "";
+                                if (programStartTime < currentTimeSlot - contThreshold)
+                                    programLabel.Text = "< ";
+                                programLabel.Text += program.EventName;
+                                if (programEndTime > secondTimeSlot + new TimeSpan(0,30,0) + contThreshold)
+                                    programLabel.Text += " >";
                             }
-                        }
-                        if (channel.Attributes["name"].Value == "")
-                        {
-                            channelName.Text = station.Name;
-                        }
-                            
-                        bool noprograms = true;
-                        foreach (var program in station.EPGCollection)
-                        {
-                            DateTime programStartTime = program.StartTime.ToLocalTime();
-                            DateTime programEndTime = programStartTime + program.Duration;
-
-                            if (programStartTime < secondTimeSlot.AddMinutes(30) && programEndTime > currentTimeSlot)
+                            else if (programStartTime < currentTimeSlot - contThreshold)
                             {
-                                Panel programPanel = new Panel();
-                                Label programLabel = new Label();
+                                programPanel.Left = clockPanel.Right;
+                                programPanel.Width = Convert.ToInt32(programEndTime.Subtract(currentTimeSlot).TotalMinutes) * clockPanel.Width / 30;
+                                programLabel.Text = "";
+                                if (programStartTime < currentTimeSlot - contThreshold)
+                                    programLabel.Text = "< ";
+                                programLabel.Text += program.EventName;
+                            }
+                            else if (programEndTime > secondTimeSlot + new TimeSpan(0,30,0) + contThreshold)
+                            {
+                                programPanel.Left = clockPanel.Right + Convert.ToInt32(programStartTime.Subtract(currentTimeSlot).TotalMinutes) * clockPanel.Width / 30;
+                                programPanel.Width = Convert.ToInt32(secondTimeSlot.AddMinutes(30).Subtract(programStartTime).TotalMinutes) * clockPanel.Width / 30;
                                 programLabel.Text = program.EventName;
-                                //int length = Convert.ToInt32(programEndTime.Subtract(programStartTime).TotalMinutes);
-                                if (programStartTime < currentTimeSlot && programEndTime > secondTimeSlot.AddMinutes(30))
-                                {
-                                    programPanel.Left = clockPanel.Right;
-                                    programPanel.Width = clockPanel.Width * 3;
-                                    programLabel.Text = "< " + program.EventName + " >";
-                                }
-                                else if (programStartTime < currentTimeSlot)
-                                {
-                                    programPanel.Left = clockPanel.Right;
-                                    programPanel.Width = Convert.ToInt32(programEndTime.Subtract(currentTimeSlot).TotalMinutes) * clockPanel.Width / 30;
-                                    programLabel.Text = "< " + program.EventName;
-                                }
-                                else if (programEndTime > secondTimeSlot.AddMinutes(30))
-                                {
-                                    programPanel.Left = clockPanel.Right + Convert.ToInt32(programStartTime.Subtract(currentTimeSlot).TotalMinutes) * clockPanel.Width / 30;
-                                    programPanel.Width = Convert.ToInt32(secondTimeSlot.AddMinutes(30).Subtract(programStartTime).TotalMinutes) * clockPanel.Width / 30;
-                                    programLabel.Text = program.EventName + " >";
-                                }
-                                else
-                                {
-                                    programPanel.Left = clockPanel.Right + Convert.ToInt32(programStartTime.Subtract(currentTimeSlot).TotalMinutes) * clockPanel.Width / 30;
-                                    programPanel.Width = Convert.ToInt32(programEndTime.Subtract(programStartTime).TotalMinutes) * clockPanel.Width / 30;
-                                }
-
-                                programPanel.Top = channelPanel.Top;
-                                programPanel.Height = channelPanel.Height;
-                                programPanel.BackColor = gridBackground;
-                                programPanel.SendToBack();
-                                programPanel.BorderStyle = BorderStyle.Fixed3D;
-                                programLabel.Font = font;
-                                programLabel.ForeColor = gridForeground;
-                                programLabel.Left = textMargin;
-                                programLabel.Width = programPanel.Width - (textMargin * 2);
-                                programLabel.Top = textMargin;
-                                programLabel.Height = programPanel.Height - (textMargin * 2);
-                                programLabel.TextAlign = ContentAlignment.TopLeft;
-                                programPanel.Controls.Add(programLabel);
-                                        
-                                programLabel.UseMnemonic = false;
-                                grid.Controls.Add(programPanel);
-                                noprograms = false;
+                                if (programEndTime > secondTimeSlot + new TimeSpan(0, 30, 0) + contThreshold)
+                                    programLabel.Text += " >";
                             }
+                            else
+                            {
+                                programPanel.Left = clockPanel.Right + Convert.ToInt32(programStartTime.Subtract(currentTimeSlot).TotalMinutes) * clockPanel.Width / 30;
+                                programPanel.Width = Convert.ToInt32(programEndTime.Subtract(programStartTime).TotalMinutes) * clockPanel.Width / 30;
+                            }
+
+                            programPanel.Top = channelPanel.Top;
+                            programPanel.Height = channelPanel.Height;
+                            programPanel.BackColor = gridBackground;
+                            programPanel.SendToBack();
+                            programPanel.BorderStyle = BorderStyle.Fixed3D;
+                            programLabel.Font = font;
+                            programLabel.ForeColor = gridForeground;
+                            programLabel.Left = textMargin;
+                            programLabel.Width = programPanel.Width - (textMargin * 2);
+                            programLabel.Top = textMargin;
+                            programLabel.Height = programPanel.Height - (textMargin * 2);
+                            programLabel.TextAlign = ContentAlignment.TopLeft;
+                            programPanel.Controls.Add(programLabel);
+                                        
+                            programLabel.UseMnemonic = false;
+                            grid.Controls.Add(programPanel);
+                            noprograms = false;
+                        }
                             
-                        }
-                        if (noprograms)
-                        {
-                            Panel staticPanel = new Panel();
-                            Label staticLabel = new Label();
-                            staticPanel.Width = channelPanel.Width * 3;
-                            staticPanel.Height = channelPanel.Height;
-                            staticPanel.Top = channelPanel.Top;
-                            staticPanel.Left = channelPanel.Right;
-                            staticPanel.BackColor = gridBackground;
-                            staticPanel.BorderStyle = BorderStyle.Fixed3D;
-                            staticPanel.SendToBack();
-                            staticLabel.Width = staticPanel.Width - (textMargin * 2);
-                            staticLabel.Height = staticPanel.Height - (textMargin * 2);
-                            staticLabel.Left = textMargin;
-                            staticLabel.Top = textMargin;
-                            staticLabel.ForeColor = gridForeground;
-                            staticLabel.Font = font;
-                            staticLabel.TextAlign = ContentAlignment.TopLeft;
-                            staticLabel.Text = "Data Unavailable";
-                            staticPanel.Controls.Add(staticLabel);
-                            grid.Controls.Add(staticPanel);
-                        }
                     }
-                    catch
+                    if (noprograms)
                     {
                         Panel staticPanel = new Panel();
                         Label staticLabel = new Label();
@@ -618,6 +560,29 @@ namespace EPG
                         grid.Controls.Add(staticPanel);
                     }
                 }
+                catch
+                {
+                    Panel staticPanel = new Panel();
+                    Label staticLabel = new Label();
+                    staticPanel.Width = channelPanel.Width * 3;
+                    staticPanel.Height = channelPanel.Height;
+                    staticPanel.Top = channelPanel.Top;
+                    staticPanel.Left = channelPanel.Right;
+                    staticPanel.BackColor = gridBackground;
+                    staticPanel.BorderStyle = BorderStyle.Fixed3D;
+                    staticPanel.SendToBack();
+                    staticLabel.Width = staticPanel.Width - (textMargin * 2);
+                    staticLabel.Height = staticPanel.Height - (textMargin * 2);
+                    staticLabel.Left = textMargin;
+                    staticLabel.Top = textMargin;
+                    staticLabel.ForeColor = gridForeground;
+                    staticLabel.Font = font;
+                    staticLabel.TextAlign = ContentAlignment.TopLeft;
+                    staticLabel.Text = "Data Unavailable";
+                    staticPanel.Controls.Add(staticLabel);
+                    grid.Controls.Add(staticPanel);
+                }
+                
                 gridBottom = channelPanel.Bottom;
             }
             Panel endPanel = new Panel();
@@ -698,42 +663,48 @@ namespace EPG
             }
             grids.Clear();
             pauseatbox = null;
-            //gridBottom = this.Height;
             
         }
 
-        private void getGuideData()
+        private void GetGuideData()
         {
+            dataloaded = true;
+            DateTime now = DateTime.Now;
             
-            while (true)
+            runReference = now.DayOfYear.ToString() + now.TimeOfDay.Hours.ToString() + now.TimeOfDay.Minutes.ToString() + now.TimeOfDay.Seconds.ToString();
+            bool reply = CommandLine.Process(new string[] { "/INI=" + Directory.GetCurrentDirectory() + "\\EPG Collector.ini", "/BACKGROUND=" + runReference });
+            RunParameters.Instance.Process(CommandLine.IniFileName);
+            do
             {
-                EPGController.Instance.FinishRun();
-                stations = RunParameters.Instance.StationCollection;
+                HistoryRecord.Current = new HistoryRecord(DateTime.Now);
+
+                cancelMutex = new Mutex(true, "EPG Collector Cancel Mutex " + runReference);
+                EPGCollector.Run(reply);
+                foreach (var item in RunParameters.Instance.StationCollection)
+                {
+                    if (item.MinorChannelNumber != -1)
+                        item.LogicalChannelNumber = item.TransportStreamID;
+                }
+                stations = RunParameters.Instance.StationCollection.OrderBy(station => station.LogicalChannelNumber).ThenBy(station => station.MinorChannelNumber).ThenBy(station => station.ServiceID).Where(station => station.Included).ToList();
+                cancelMutex.Close();
                 dataloaded = true;
-                System.Threading.Thread.Sleep(listingInterval * 1000);
-            }
+                Thread.Sleep(listingInterval * 1000);
+                
+            } while (true);
             
+
         }
-        private void getSettings()
+
+
+        private void GetSettings()
         {
             FileStream fs = null;
             try
             {
                 XmlDocument settingsfile = new XmlDocument();
-                XmlNodeList files = settingsfile.GetElementsByTagName("XMLTVFile");
                 fs = new FileStream("epg.xml", FileMode.Open, FileAccess.Read);
                 settingsfile.Load(fs);
                 RunParameters.BaseDirectory = "";
-                RunParameters.Instance.ImportFiles = new Collection<ImportFileSpec>();
-                foreach (XmlNode file in files)
-                {
-                    ImportFileSpec fileSpec = new ImportFileSpec(file.Attributes["path"].Value);
-                    fileSpec.IdFormat = (XmltvIdFormat)Convert.ToInt32(file.Attributes["IdFormat"].Value);
-                    fileSpec.AppendOnly = true;
-                    RunParameters.Instance.ImportFiles.Add(fileSpec);
-                    
-                }
-                
                 XmlNodeList nodeList = settingsfile.SelectNodes("/epg/settings");
                 foreach (XmlNode item in nodeList)
                 {
@@ -798,6 +769,7 @@ namespace EPG
                             {
                                 this.WindowState = FormWindowState.Maximized;
                                 this.FormBorderStyle = FormBorderStyle.Sizable;
+                                this.TopMost = false;
                                 Cursor.Show();
                             }
                             formResize(null, EventArgs.Empty);
@@ -837,8 +809,10 @@ namespace EPG
             
 
         }
+
     }
-    class Grid : Panel
+
+    internal class Grid : Panel
     {
         public bool hasTimePanels = true;
         public Panel newCurrentTimeSlot;

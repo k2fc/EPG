@@ -33,6 +33,42 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="ChannelUpdate, Version=4.3.7242.25487, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>EPGCollector\ChannelUpdate.dll</HintPath>
+    </Reference>
+    <Reference Include="DirectShow, Version=4.3.7242.25488, Culture=neutral, processorArchitecture=x86">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>EPGCollector\DirectShow.dll</HintPath>
+    </Reference>
+    <Reference Include="DomainObjects, Version=4.3.7242.18984, Culture=neutral, processorArchitecture=x86">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>EPGCollector\DomainObjects.dll</HintPath>
+    </Reference>
+    <Reference Include="DVBServices, Version=4.3.7245.20840, Culture=neutral, processorArchitecture=x86">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>EPGCollector\DVBServices.dll</HintPath>
+    </Reference>
+    <Reference Include="Lookups, Version=4.3.7242.25487, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>EPGCollector\Lookups.dll</HintPath>
+    </Reference>
+    <Reference Include="MxfParser, Version=4.3.7242.25487, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>EPGCollector\MxfParser.dll</HintPath>
+    </Reference>
+    <Reference Include="NetReceiver, Version=4.3.7245.23018, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>EPGCollector\NetReceiver.dll</HintPath>
+    </Reference>
+    <Reference Include="NetworkProtocols, Version=4.3.7245.23018, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>EPGCollector\NetworkProtocols.dll</HintPath>
+    </Reference>
+    <Reference Include="SatIp, Version=4.3.7245.23018, Culture=neutral, processorArchitecture=x86">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>EPGCollector\SatIp.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Xml.Linq" />
@@ -44,8 +80,17 @@
     <Reference Include="System.Net.Http" />
     <Reference Include="System.Windows.Forms" />
     <Reference Include="System.Xml" />
+    <Reference Include="VBox, Version=4.3.7245.23018, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>EPGCollector\VBox.dll</HintPath>
+    </Reference>
+    <Reference Include="XmltvParser, Version=4.3.7245.20703, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>EPGCollector\XmltvParser.dll</HintPath>
+    </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="EPGCollector.cs" />
     <Compile Include="Form1.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -84,22 +129,7 @@
     <Content Include="epg.xml">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="leftarrow.png" />
-    <Content Include="rightarrow.png" />
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\EPGCollector\DomainObjects\DomainObjects.csproj">
-      <Project>{691c6eb5-d035-43e6-b3a9-f5131bf09916}</Project>
-      <Name>DomainObjects</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\EPGCollector\DVBServices\DVBServices.csproj">
-      <Project>{2162b6d8-871f-4b2e-8d97-0fa2c8da76d1}</Project>
-      <Name>DVBServices</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\XmlParser\XmltvParser.csproj">
-      <Project>{89ab1da3-f6bd-4fea-86dd-cb884b06a0b4}</Project>
-      <Name>XmltvParser</Name>
-    </ProjectReference>
+    <Content Include="EPGCollector.pdb" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

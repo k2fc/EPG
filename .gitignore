@@ -241,3 +241,21 @@ ModelManifest.xml
 # FAKE - F# Make
 .fake/
 *.png
+/EPG/EPGCollector/DVBServices.dll
+/EPG/EPGCollector/DomainObjects.dll
+/EPG/EPGCollector/DirectShow.dll
+/EPG/EPGCollector/ChannelUpdate.dll
+/EPG/EPGCollector/zlib.net.dll
+/EPG/EPGCollector/XmltvParser.dll
+/EPG/EPGCollector/VBox.dll
+/EPG/EPGCollector/ttBdaDrvApi_Dll.dll
+/EPG/EPGCollector/TheTVDBLibV2.dll
+/EPG/EPGCollector/TheMovieDBLib.dll
+/EPG/EPGCollector/TeVii.dll
+/EPG/EPGCollector/SQLite.Interop.dll
+/EPG/EPGCollector/SatIp.dll
+/EPG/EPGCollector/PSIMemoryShare.dll
+/EPG/EPGCollector/NetworkProtocols.dll
+/EPG/EPGCollector/NetReceiver.dll
+/EPG/EPGCollector/MxfParser.dll
+/EPG/EPGCollector/Lookups.dll
