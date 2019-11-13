@@ -25,6 +25,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using System.Diagnostics;
 using System.ComponentModel;
+using System.Collections.ObjectModel;
 
 namespace EPG
 {
@@ -34,9 +35,9 @@ namespace EPG
         private DateTime currentTimeSlot = new DateTime();
         private DateTime nextTimeSlot = new DateTime();
         private DateTime secondTimeSlot = new DateTime();
-        private Panel gridTimeCurrent;
-        private Panel gridTimePlus30;
-        private Panel gridTimePlus60;
+        private Panel gridTimeCurrent = new Panel();
+        private Panel gridTimePlus30 = new Panel();
+        private Panel gridTimePlus60 = new Panel();
         private readonly Panel topMask = new Panel();
         private readonly Panel clockPanel = new Panel();
         private readonly Label clock = new Label();
@@ -469,7 +470,7 @@ namespace EPG
                 try
                 {
                     channelName.Text = channel.Name.Trim().ToUpper();
-                                                    
+
                     bool noprograms = true;
                     foreach (var program in channel.EPGCollection)
                     {
@@ -494,7 +495,7 @@ namespace EPG
                                 if (programEndTime > secondTimeSlot + new TimeSpan(0,30,0) + contThreshold)
                                     programLabel.Text += " >";
                             }
-                            else if (programStartTime < currentTimeSlot - contThreshold)
+                            else if (programStartTime < currentTimeSlot)
                             {
                                 programPanel.Left = clockPanel.Right;
                                 programPanel.Width = Convert.ToInt32(programEndTime.Subtract(currentTimeSlot).TotalMinutes) * clockPanel.Width / 30;
@@ -503,7 +504,7 @@ namespace EPG
                                     programLabel.Text = "< ";
                                 programLabel.Text += program.EventName;
                             }
-                            else if (programEndTime > secondTimeSlot + new TimeSpan(0,30,0) + contThreshold)
+                            else if (programEndTime > secondTimeSlot + new TimeSpan(0,30,0))
                             {
                                 programPanel.Left = clockPanel.Right + Convert.ToInt32(programStartTime.Subtract(currentTimeSlot).TotalMinutes) * clockPanel.Width / 30;
                                 programPanel.Width = Convert.ToInt32(secondTimeSlot.AddMinutes(30).Subtract(programStartTime).TotalMinutes) * clockPanel.Width / 30;
@@ -672,27 +673,24 @@ namespace EPG
             DateTime now = DateTime.Now;
             
             runReference = now.DayOfYear.ToString() + now.TimeOfDay.Hours.ToString() + now.TimeOfDay.Minutes.ToString() + now.TimeOfDay.Seconds.ToString();
-            bool reply = CommandLine.Process(new string[] { "/INI=" + Directory.GetCurrentDirectory() + "\\EPG Collector.ini", "/BACKGROUND=" + runReference });
-            RunParameters.Instance.Process(CommandLine.IniFileName);
+            
             do
             {
+                RunParameters.Instance = new RunParameters(ParameterSet.Collector, RunType.Collection);
+                RunParameters.Instance.Process("EPG Collector.ini");
                 HistoryRecord.Current = new HistoryRecord(DateTime.Now);
-
-                cancelMutex = new Mutex(true, "EPG Collector Cancel Mutex " + runReference);
-                EPGCollector.Run(reply);
+                RunParameters.Instance.Options.Add(new OptionEntry(OptionName.RunFromService));
+                EPGCollector.Run(true);
                 foreach (var item in RunParameters.Instance.StationCollection)
                 {
                     if (item.MinorChannelNumber != -1)
                         item.LogicalChannelNumber = item.TransportStreamID;
+                    item.EPGCollection = new Collection<EPGEntry>(item.EPGCollection.Where(epg => epg.StartTime + epg.Duration > currentTimeSlot).ToList());
                 }
                 stations = RunParameters.Instance.StationCollection.OrderBy(station => station.LogicalChannelNumber).ThenBy(station => station.MinorChannelNumber).ThenBy(station => station.ServiceID).Where(station => station.Included).ToList();
-                cancelMutex.Close();
                 dataloaded = true;
                 Thread.Sleep(listingInterval * 1000);
-                
             } while (true);
-            
-
         }
 
 
@@ -810,6 +808,10 @@ namespace EPG
 
         }
 
+        private void Form1_Load(object sender, EventArgs e)
+        {
+
+        }
     }
 
     internal class Grid : Panel
