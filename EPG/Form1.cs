@@ -42,7 +42,7 @@ namespace EPG
         private readonly Panel clockPanel = new Panel();
         private readonly Label clock = new Label();
         private readonly Label title = new Label();
-        private List<TVStation> stations = new List<TVStation>();
+        private IEnumerable<TVStation> stations;
         private List<Grid> grids = new List<Grid>();
         private string runReference;
         private Mutex cancelMutex;
@@ -419,7 +419,6 @@ namespace EPG
             int gridBottom = datePanel.Bottom;
 
             XmlDataDocument configFile = new XmlDataDocument();
-            XmlNodeList files;
 
             XmlNodeList channels;
             FileStream fs = new FileStream("epg.xml", FileMode.Open, FileAccess.Read);
@@ -429,7 +428,8 @@ namespace EPG
             
             ////XmltvIdFormat.
             channels = configFile.GetElementsByTagName("channel");
-            foreach (TVStation channel in stations)
+            var stationList = stations.OrderBy(station => station.LogicalChannelNumber).ThenBy(station => station.MinorChannelNumber).ThenBy(station => station.ServiceID).Where(station => station.Included).ToList();
+            foreach (TVStation channel in stationList)
             {
                 Panel channelPanel = new Panel();
                 Label channelNum = new Label();
@@ -452,7 +452,7 @@ namespace EPG
                 else if (channel.LogicalChannelNumber > -1)
                     channelNum.Text = channel.LogicalChannelNumber.ToString();
                 else
-                    channelNum.Text = channel.LogicalChannelNumber.ToString();
+                    channelNum.Text = channel.TransportStreamID.ToString();
                 channelNum.TextAlign = ContentAlignment.MiddleCenter;
                 channelName.Top = channelNum.Bottom;
                 channelName.Left = 0;
@@ -669,7 +669,6 @@ namespace EPG
 
         private void GetGuideData()
         {
-            dataloaded = true;
             DateTime now = DateTime.Now;
             
             runReference = now.DayOfYear.ToString() + now.TimeOfDay.Hours.ToString() + now.TimeOfDay.Minutes.ToString() + now.TimeOfDay.Seconds.ToString();
@@ -677,9 +676,15 @@ namespace EPG
             do
             {
                 RunParameters.Instance = new RunParameters(ParameterSet.Collector, RunType.Collection);
+                if (stations is null)
+                {
+                    stations = RunParameters.Instance.StationCollection;//.OrderBy(station => station.LogicalChannelNumber).ThenBy(station => station.MinorChannelNumber).ThenBy(station => station.ServiceID).Where(station => station.Included).ToList();
+                    dataloaded = true;
+                }
                 RunParameters.Instance.Process("EPG Collector.ini");
                 HistoryRecord.Current = new HistoryRecord(DateTime.Now);
                 RunParameters.Instance.Options.Add(new OptionEntry(OptionName.RunFromService));
+                RunParameters.Instance.Options.Add(new OptionEntry(OptionName.CreateChannelDefFile));
                 EPGCollector.Run(true);
                 foreach (var item in RunParameters.Instance.StationCollection)
                 {
@@ -687,7 +692,7 @@ namespace EPG
                         item.LogicalChannelNumber = item.TransportStreamID;
                     item.EPGCollection = new Collection<EPGEntry>(item.EPGCollection.Where(epg => epg.StartTime + epg.Duration > currentTimeSlot).ToList());
                 }
-                stations = RunParameters.Instance.StationCollection.OrderBy(station => station.LogicalChannelNumber).ThenBy(station => station.MinorChannelNumber).ThenBy(station => station.ServiceID).Where(station => station.Included).ToList();
+                stations = RunParameters.Instance.StationCollection.ToList();
                 dataloaded = true;
                 Thread.Sleep(listingInterval * 1000);
             } while (true);
