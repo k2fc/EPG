@@ -117,8 +117,6 @@ namespace EPG
             Logger.Instance.Write("SatIp build: " + SatIpController.AssemblyVersion);
             Logger.Instance.Write("VBox build: " + VBoxController.AssemblyVersion);
             Logger.Instance.Write("");
-            Logger.Instance.Write("TMDB library build: " + LookupController.TmdbAssemblyVersion);
-            Logger.Instance.Write("TVDB library build: " + LookupController.TvdbAssemblyVersion);
             Logger.Instance.Write("");
             Logger.Instance.Write("Privilege level: " + RunParameters.Role);
             Logger.Instance.Write("");
