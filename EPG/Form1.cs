@@ -139,6 +139,7 @@ namespace EPG
                 foreach (Control control in murdergrid.Controls)
                     control.Dispose();
                 murdergrid.Controls.Clear();
+                this.Controls.Remove(murdergrid);
                 murdergrid.Dispose();
             }
             grids = grids.Where(x => x.Bottom >= topRow.Top).ToList();
