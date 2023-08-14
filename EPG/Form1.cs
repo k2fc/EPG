@@ -791,12 +791,23 @@ namespace EPG
                         item.LogicalChannelNumber = item.TransportStreamID;
                     item.EPGCollection = new Collection<EPGEntry>(item.EPGCollection.Where(epg => epg.StartTime + epg.Duration > currentTimeSlot).ToList());
                 }
-                stations = RunParameters.Instance.StationCollection.ToList();
+                stations = replaceMissingChannels(RunParameters.Instance.StationCollection.ToList());
                 dataloaded = true;
                 Thread.Sleep(listingInterval * 1000);
             } while (true);
         }
 
+        private IEnumerable<TVStation> replaceMissingChannels(List<TVStation> newList)
+        {
+            stations.ToList().ForEach(station =>
+            {
+                if (station.MinorChannelNumber > 0 && !newList.Any(newStation => newStation.OriginalNetworkID == station.OriginalNetworkID))
+                {
+                    newList.Add(station);
+                }
+            });
+            return newList;
+        }
 
         private void GetSettings()
         {
