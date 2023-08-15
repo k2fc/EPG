@@ -804,7 +804,7 @@ namespace EPG
             {
                 if (station.MinorChannelNumber > 0 && !newList.Any(newStation => newStation.OriginalNetworkID == station.OriginalNetworkID))
                 {
-                    newList.Add(station);
+                    newList.AddRange(stations.Where(s => s.OriginalNetworkID == station.OriginalNetworkID));
                 }
             });
             return newList;
