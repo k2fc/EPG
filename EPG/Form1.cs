@@ -35,22 +35,20 @@ namespace EPG
         private DateTime currentTimeSlot = new DateTime();
         private DateTime nextTimeSlot = new DateTime();
         private DateTime secondTimeSlot = new DateTime();
-        private Panel gridTimeCurrent = new Panel();
-        private Panel gridTimePlus30 = new Panel();
-        private Panel gridTimePlus60 = new Panel();
+        private Panel gridTimeCurrent = new Box();
+        private Panel gridTimePlus30 = new Box();
+        private Panel gridTimePlus60 = new Box();
         private Panel topRow = new Panel();
-        private readonly Panel topMask = new Panel();
-        private readonly Panel clockPanel = new Panel();
-        private readonly Label clock = new Label();
-        private readonly Label title = new Label();
+        private readonly Panel clockPanel = new Box();
+        private readonly Label clock = new OutlineLabel();
+        private readonly Label title = new OutlineLabel();
         private IEnumerable<TVStation> stations;
-        private List<Grid> grids = new List<Grid>();
+        private Panel grids = new Panel();
         private string runReference;
         private Mutex cancelMutex;
         private int gridMargin = 25;
         private int gridVerticalStart = 240;
         private int rowHeight = 34;
-        private int textMargin = 3;
         private int lookahead = 0;
         private Color background;
         private Color timeBackground;
@@ -60,11 +58,12 @@ namespace EPG
         private Color endBackground;
         private Color endForeground;
         private Font font = new Font("Consolas",14);
-        private String titletext = "";
-        private String endText = "";
-        private int gridBottom = 0;
-        private int speed = 1;
+        private string titletext = "";
+        private string endText = "";
+        private float speed = 1;
         private int listingInterval = 0;
+        private int BoxBorderSize = 0;
+        private float FontOutlineSize = 0;
         private Panel pauseatbox;
         private Grid pauseatgrid;
         private int pauselength = 2;
@@ -88,8 +87,8 @@ namespace EPG
             clockPanel.Left = 0;
             clockPanel.Width = (this.Width - (gridMargin*2)) / 4;
             clockPanel.Height = rowHeight;
-            clock.Width = clockPanel.Width - (textMargin * 2);
-            clock.Left = textMargin;
+            clock.Width = clockPanel.Width - (BoxBorderSize * 2);
+            clock.Left = BoxBorderSize;
             clock.Height = clockPanel.Height;
             clock.Top = 0;
             clock.TextAlign = ContentAlignment.MiddleRight;
@@ -97,66 +96,81 @@ namespace EPG
             clock.ForeColor = gridForeground;
             clockPanel.Visible = true;
             clockPanel.BackColor = timeBackground;
-            clockPanel.BorderStyle = BorderStyle.Fixed3D;
+            clockPanel.BorderStyle = BorderStyle.None;
             clockPanel.Controls.Add(clock);
             topRow.Controls.Add(clockPanel);
             this.Controls.Add(topRow);
 
-            //create the mask that hides the times as they get pushed off
-            topMask.BackColor = background;
-            topMask.Top = 0;
-            topMask.Height = topRow.Top;
-            topMask.Left = topRow.Left;
-            topMask.Width = this.Width - (gridMargin * 2);
-            topMask.Controls.Add(title);
-            this.Controls.Add(topMask);
+            grids.Top = topRow.Bottom;
+            grids.Left = gridMargin;
+            grids.Width = this.Width - (gridMargin * 2);
+            grids.Height = this.Height - topRow.Bottom;
+            grids.BorderStyle = BorderStyle.FixedSingle;
+            this.Controls.Add(grids);
+
 
             formResize(null, null);
             
             Task.Run(() => GetGuideData());
-
+            timer1.Start();
             title.Top = 0;
             title.Left = 0;
             title.Width = this.Width;
-            title.Height = this.Height;
+            title.Height = gridVerticalStart - (BoxBorderSize * 2);
             title.Text = "Loading Data\r\nPlease Wait...";
             title.TextAlign = ContentAlignment.MiddleCenter;
+            this.Controls.Add(title);
 
-            timer1.Start();
             
         }
-        Panel nextCurrent = null;
-        Panel nextP30 = null;
-        Panel nextP60 = null;
+        Box nextCurrent = null;
+        Box nextP30 = null;
+        Box nextP60 = null;
         private Grid nextGrid;
-        private void timer1_Tick(object sender, EventArgs e)
+        private Stopwatch stopwatch;
+        protected void timer1_Tick(object sender, EventArgs e)
         {
+            timer1.Stop();
+            int frames = 1;
+            if (stopwatch == null)
+            {
+                stopwatch = new Stopwatch();
+                stopwatch.Start();
+            }
+            else
+            {
+                frames = (int)(stopwatch.ElapsedMilliseconds / 16.667);
+                stopwatch.Restart();
+            }
             curTime = DateTime.Now;
             clock.Text = curTime.ToString("h:mm:ss");
-            List<Grid> murdergrids = grids.Where(x => x.Bottom <= topRow.Top).ToList();
-            foreach (Grid murdergrid in murdergrids)
+            foreach (Grid grid in grids.Controls)
             {
-                foreach (Control control in murdergrid.Controls)
-                    control.Dispose();
-                murdergrid.Controls.Clear();
-                this.Controls.Remove(murdergrid);
-                murdergrid.Dispose();
+                if (grid.Bottom < 0)
+                {
+                    foreach (Control control in grid.Controls)
+                    {
+                        control.Dispose();
+                    }
+                    grid.Controls.Clear();
+                    grids.Controls.Remove(grid);
+                    grid.Dispose();
+                }
             }
-            grids = grids.Where(x => x.Bottom >= topRow.Top).ToList();
             if (paused) 
             {
                 if (curTime > pauseuntil)
                     paused = false;
                 bool foundnextpause = false;
-                foreach (Grid grid in grids)
+                foreach (Grid grid in grids.Controls)
                 {
                     
-                    if (grid.Bottom > this.Height && grid.Top < clockPanel.Bottom)
+                    if (grid.Bottom > grids.Height && grid.Top < 0) // grid is visible
                     {
                         foreach (Panel box in grid.Controls)
                         {
                         
-                            if (box.Bottom + grid.Top > this.Height && box.Top + grid.Top > clockPanel.Bottom)
+                            if (box.Bottom + grid.Top > grids.Height && box.Top + grid.Top > 0) // row is partially visible
                             {
                                 if (!foundnextpause)
                                 {
@@ -172,12 +186,12 @@ namespace EPG
                             pauseatbox = (Panel)grid.Controls[grid.Controls.Count - 1];
                         }
                     }
-                    else if (grid.Top < this.Height && !foundnextpause)
+                    else if (grid.Top < grids.Height && !foundnextpause)
                     {
                         foreach (Panel box in grid.Controls)
                         {
 
-                            if (box.Bottom + grid.Top > this.Height && box.Top + grid.Top > clockPanel.Bottom)
+                            if (box.Bottom + grid.Top > grids.Height && box.Top + grid.Top > 0)
                             {
                                 if (!foundnextpause)
                                 {
@@ -195,7 +209,7 @@ namespace EPG
                     }
                 }
 
-                if (gridBottom <= this.Height * 2)
+                if (grids.Controls.Count == 0 || grids.Controls[grids.Controls.Count - 1].Bottom <= grids.Height * 2)
                 {
                     generateGrid();
 
@@ -207,82 +221,82 @@ namespace EPG
          
             else {
 
-                gridBottom -= speed;
-                foreach (Grid grid in grids)
+                foreach (Grid grid in grids.Controls)
                 {
+                    int speed = (int)(frames * this.speed);
                     grid.Top -= speed;
                     
                     
                     if (grid.newCurrentTimeSlot != null)
                     {
-                        if (grid.newCurrentTimeSlot.Top + grid.Top < topRow.Bottom)
+                        if (grid.Top < 0)
                         {
                             if (nextGrid != grid)
                             {
                                 nextGrid = grid;
-                                nextCurrent = new Panel()
+                                nextCurrent = new Box()
                                 {
                                     Width = grid.newCurrentTimeSlot.Width,
                                     Height = grid.newCurrentTimeSlot.Height,
                                     Left = clockPanel.Right,
                                     Top = topRow.Height,
                                     BackColor = timeBackground,
-                                    BorderStyle = BorderStyle.Fixed3D
+                                    BorderSize = BoxBorderSize
                                 };
                                 topRow.Controls.Add(nextCurrent);
-                                nextP30 = new Panel()
+                                nextP30 = new Box()
                                 {
                                     Width = grid.newPlus30TimeSlot.Width,
                                     Height = grid.newPlus30TimeSlot.Height,
                                     Left = nextCurrent.Right,
                                     Top = topRow.Height,
                                     BackColor = timeBackground,
-                                    BorderStyle = BorderStyle.Fixed3D
+                                    BorderSize = BoxBorderSize
                                 };
                                 topRow.Controls.Add(nextP30);
-                                nextP60 = new Panel()
+                                nextP60 = new Box()
                                 {
                                     Width = grid.newPlus60TimeSlot.Width,
                                     Height = grid.newPlus60TimeSlot.Height,
                                     Left = nextP30.Right,
                                     Top = topRow.Height,
                                     BackColor = timeBackground,
-                                    BorderStyle = BorderStyle.Fixed3D
+                                    BorderSize = BoxBorderSize
                                 };
                                 topRow.Controls.Add(nextP60);
                                 var ncLabel = grid.newCurrentTimeSlot.Controls[0] as Label;
                                 var np30Label = grid.newPlus30TimeSlot.Controls[0] as Label;
                                 var np60Label = grid.newPlus60TimeSlot.Controls[0] as Label;
-                                nextCurrent.Controls.Add(new Label()
+                                nextCurrent.Controls.Add(new OutlineLabel()
                                 {
-                                    Top = 0,
-                                    Left = textMargin,
-                                    Height = nextCurrent.Height,
-                                    Width = nextCurrent.Width - (textMargin * 2),
+                                    Top = BoxBorderSize,
+                                    Left = BoxBorderSize,
+                                    Height = nextCurrent.Height - (BoxBorderSize * 2),
+                                    Width = nextCurrent.Width - (BoxBorderSize * 2),
                                     Text = ncLabel.Text,
                                     ForeColor = timeForeground,
                                     BackColor = timeBackground,
                                     Font = ncLabel.Font,
                                     TextAlign = ContentAlignment.MiddleCenter
                                 });
-                                nextP30.Controls.Add(new Label()
+                                nextP30.Controls.Add(new OutlineLabel()
                                 {
-                                    Top = 0,
-                                    Left = textMargin,
-                                    Height = nextP30.Height,
-                                    Width = nextP30.Width - (textMargin * 2),
+                                    Top = BoxBorderSize,
+                                    Left = BoxBorderSize,
+                                    Height = nextP30.Height - (BoxBorderSize * 2),
+                                    Width = nextP30.Width - (BoxBorderSize * 2),
                                     Text = np30Label.Text,
                                     ForeColor = timeForeground,
                                     BackColor = timeBackground,
                                     Font = np30Label.Font,
                                     TextAlign = ContentAlignment.MiddleCenter
                                 });
-                                nextP60.Controls.Add(new Label()
+                                nextP60.Controls.Add(new OutlineLabel()
                                 {
-                                    Top = 0,
-                                    Left = textMargin,
-                                    Height = nextP60.Height,
-                                    Width = nextP60.Width - (textMargin * 2),
+                                    Top = BoxBorderSize,
+                                    Left = BoxBorderSize,
+                                    Height = nextP60.Height - (BoxBorderSize * 2),
+                                    Width = nextP60.Width - (BoxBorderSize * 2),
                                     Text = np60Label.Text,
                                     ForeColor = timeForeground,
                                     BackColor = timeBackground,
@@ -299,11 +313,9 @@ namespace EPG
                                 nextP30.Top -= speed;
                                 nextP60.Top -= speed;
                             }
-                            topRow.BringToFront();
-                            topMask.BringToFront();
                         }
 
-                        if (grid.newCurrentTimeSlot.Bottom + grid.Top <= topRow.Bottom)
+                        if (grid.Top <= -grid.newCurrentTimeSlot.Height)
                         {
                             gridTimeCurrent.Dispose();
                             gridTimePlus30.Dispose();
@@ -314,16 +326,15 @@ namespace EPG
                             gridTimeCurrent = nextCurrent;
                             gridTimePlus30 = nextP30;
                             gridTimePlus60 = nextP60;
-                            grid.Controls.Remove(grid.newCurrentTimeSlot);
-                            grid.Controls.Remove(grid.newPlus30TimeSlot);
-                            grid.Controls.Remove(grid.newPlus60TimeSlot);
+                            //grid.Controls.Remove(grid.newCurrentTimeSlot);
+                            //grid.Controls.Remove(grid.newPlus30TimeSlot);
+                            //grid.Controls.Remove(grid.newPlus60TimeSlot);
                             grid.newCurrentTimeSlot = null;
                             grid.newPlus30TimeSlot = null;
                             grid.newPlus60TimeSlot = null;
                             gridTimeCurrent.Top = clockPanel.Top;
                             gridTimePlus30.Top = clockPanel.Top;
                             gridTimePlus60.Top = clockPanel.Top;
-                            grid.SendToBack();
                             gridTimeCurrent.Left = clockPanel.Width;
                             gridTimePlus30.Left = gridTimeCurrent.Right;
                             gridTimePlus60.Left = gridTimePlus30.Right;
@@ -335,7 +346,7 @@ namespace EPG
                             //gridTimePlus60.BringToFront();
                             
 
-                            pauseatbox = (Panel)grid.Controls[3];
+                            pauseatbox = (Panel)grid.Controls[6];
                         }
 
                     }
@@ -344,7 +355,7 @@ namespace EPG
 
                 if (doneInit && dataloaded)
                 {
-                    if (grids.Count < 1)
+                    if (grids.Controls.Count < 1)
                     {
                         generateGrid();
                     }
@@ -352,8 +363,7 @@ namespace EPG
 
                     if (pauseatgrid != null && pauseatbox != null)
                     {
-                        if (pauseatbox.Top + pauseatgrid.Top <= topRow.Bottom &&
-                            pauseatbox.Top + pauseatgrid.Top >= topRow.Top)
+                        if (pauseatbox.Top + pauseatgrid.Top <= 0)
                         {
 
                             pauseuntil = curTime.AddSeconds(pauselength);
@@ -374,7 +384,7 @@ namespace EPG
                 
             doneInit = true;
 
-            
+            timer1.Start();
         }
 
         public static DateTime RoundDown(DateTime dt, TimeSpan d)
@@ -393,84 +403,88 @@ namespace EPG
             Grid grid = new Grid
             {
                 Left = 0,
-                Width = this.Width
+                Width = grids.Width
             };
             
 
-            Panel newCurrentTimeSlot = new Panel();
-            Panel newPlus30TimeSlot = new Panel();
-            Panel newPlus60TimeSlot = new Panel();
-            Label newCurrentTSLabel = new Label();
-            Label newPlus30TSLabel = new Label();
-            Label newPlus60TSLabel = new Label();
+            Box newCurrentTimeSlot = new Box();
+            Box newPlus30TimeSlot = new Box();
+            Box newPlus60TimeSlot = new Box();
+            Label newCurrentTSLabel = new OutlineLabel();
+            Label newPlus30TSLabel = new OutlineLabel();
+            Label newPlus60TSLabel = new OutlineLabel();
 
             curTime = DateTime.Now;
             currentTimeSlot = RoundDown(curTime+TimeSpan.FromMinutes(lookahead), TimeSpan.FromMinutes(30));
             nextTimeSlot = currentTimeSlot + TimeSpan.FromMinutes(30);
             secondTimeSlot = currentTimeSlot + TimeSpan.FromMinutes(60);
 
-            Panel blank = new Panel
+            Panel blank = new Box
             {
                 Top = 0,
                 Width = clockPanel.Width,
                 Height = clockPanel.Height,
-                Left = topRow.Left,
+                Left = 0,
                 BackColor = gridBackground,
-                BorderStyle = BorderStyle.Fixed3D
+                BorderStyle = BorderStyle.None,
+                BorderSize = BoxBorderSize
             };
             grid.Controls.Add(blank);
 
             newCurrentTimeSlot.Top = blank.Top;
-            newCurrentTimeSlot.Left = topRow.Left + clockPanel.Width;
-            newCurrentTimeSlot.Width = (this.Width - (gridMargin * 2)) / 4;
+            newCurrentTimeSlot.Left = blank.Right;
+            newCurrentTimeSlot.Width = grid.Width / 4;
             newCurrentTimeSlot.Height = clockPanel.Height;
-            newCurrentTSLabel.Width = newCurrentTimeSlot.Width - (textMargin * 2);
-            newCurrentTSLabel.Left = textMargin;
-            newCurrentTSLabel.Height = newCurrentTimeSlot.Height;
-            newCurrentTSLabel.Top = 0;
+            newCurrentTimeSlot.BorderSize = BoxBorderSize;
+            newCurrentTSLabel.Width = newCurrentTimeSlot.Width - (BoxBorderSize * 2);
+            newCurrentTSLabel.Left = BoxBorderSize;
+            newCurrentTSLabel.Height = newCurrentTimeSlot.Height - (BoxBorderSize * 2);
+            newCurrentTSLabel.Top = BoxBorderSize;
             newCurrentTSLabel.TextAlign = ContentAlignment.MiddleCenter;
             newCurrentTSLabel.Font = font;
             newCurrentTSLabel.ForeColor = timeForeground;
             newCurrentTSLabel.Text = currentTimeSlot.ToString("h:mm tt");
             newCurrentTimeSlot.Visible = true;
             newCurrentTimeSlot.BackColor = gridBackground;
-            newCurrentTimeSlot.BorderStyle = BorderStyle.Fixed3D;
+            newCurrentTimeSlot.BorderStyle = BorderStyle.None;
             newCurrentTimeSlot.Controls.Add(newCurrentTSLabel);
             grid.Controls.Add(newCurrentTimeSlot);
 
             newPlus30TimeSlot.Top = blank.Top;
             newPlus30TimeSlot.Left = newCurrentTimeSlot.Right;
-            newPlus30TimeSlot.Width = (this.Width - (gridMargin * 2)) / 4;
+            newPlus30TimeSlot.Width = grid.Width / 4;
             newPlus30TimeSlot.Height = newCurrentTimeSlot.Height;
-            newPlus30TSLabel.Width = newPlus30TimeSlot.Width - (textMargin * 2);
-            newPlus30TSLabel.Left = textMargin;
-            newPlus30TSLabel.Height = newPlus30TimeSlot.Height;
-            newPlus30TSLabel.Top = 0;
+            newPlus30TimeSlot.BorderSize = BoxBorderSize;
+            newPlus30TSLabel.Width = newPlus30TimeSlot.Width - (BoxBorderSize * 2);
+            newPlus30TSLabel.Left = BoxBorderSize;
+            newPlus30TSLabel.Height = newPlus30TimeSlot.Height - (BoxBorderSize * 2);
+            newPlus30TSLabel.Top = BoxBorderSize;
             newPlus30TSLabel.TextAlign = ContentAlignment.MiddleCenter;
             newPlus30TSLabel.Font = font;
             newPlus30TSLabel.ForeColor = timeForeground;
             newPlus30TSLabel.Text = nextTimeSlot.ToString("h:mm tt");
             newPlus30TimeSlot.Visible = true;
             newPlus30TimeSlot.BackColor = gridBackground;
-            newPlus30TimeSlot.BorderStyle = BorderStyle.Fixed3D;
+            newPlus30TimeSlot.BorderStyle = BorderStyle.None;
             newPlus30TimeSlot.Controls.Add(newPlus30TSLabel);
             grid.Controls.Add(newPlus30TimeSlot);
 
             newPlus60TimeSlot.Top = blank.Top;
             newPlus60TimeSlot.Left = newPlus30TimeSlot.Right;
-            newPlus60TimeSlot.Width = (this.Width - (gridMargin * 2)) / 4;
+            newPlus60TimeSlot.Width = grid.Width / 4;
             newPlus60TimeSlot.Height = newPlus30TimeSlot.Height;
-            newPlus60TSLabel.Width = newPlus60TimeSlot.Width - (textMargin * 2);
-            newPlus60TSLabel.Left = textMargin;
-            newPlus60TSLabel.Height = newPlus60TimeSlot.Height;
-            newPlus60TSLabel.Top = 0;
+            newPlus60TimeSlot.BorderSize = BoxBorderSize;
+            newPlus60TSLabel.Width = newPlus60TimeSlot.Width - (BoxBorderSize * 2);
+            newPlus60TSLabel.Left = BoxBorderSize;
+            newPlus60TSLabel.Height = newPlus60TimeSlot.Height - (BoxBorderSize * 2);
+            newPlus60TSLabel.Top = BoxBorderSize;
             newPlus60TSLabel.TextAlign = ContentAlignment.MiddleCenter;
             newPlus60TSLabel.Font = font;
             newPlus60TSLabel.ForeColor = timeForeground;
             newPlus60TSLabel.Text = secondTimeSlot.ToString("h:mm tt");
             newPlus60TimeSlot.Visible = true;
             newPlus60TimeSlot.BackColor = gridBackground;
-            newPlus60TimeSlot.BorderStyle = BorderStyle.Fixed3D;
+            newPlus60TimeSlot.BorderStyle = BorderStyle.None;
             newPlus60TimeSlot.Controls.Add(newPlus60TSLabel);
             grid.Controls.Add(newPlus60TimeSlot);
 
@@ -483,33 +497,35 @@ namespace EPG
             grid.newPlus60TimeSlot = newPlus60TimeSlot;
             //gridBottom = newPlus60TimeSlot.Bottom;
 
-            var blank2 = new Panel
+            var blank2 = new Box
             {
                 Top = newPlus60TimeSlot.Bottom,
                 Width = clockPanel.Width,
                 Height = clockPanel.Height,
-                Left = topRow.Left,
+                Left = 0,
                 BackColor = gridBackground,
-                BorderStyle = BorderStyle.Fixed3D
+                BorderStyle = BorderStyle.None,
+                BorderSize = BoxBorderSize
             };
             grid.Controls.Add(blank2);
 
-            Panel datePanel = new Panel();
-            Label dateLabel = new Label();
+            Box datePanel = new Box();
+            Label dateLabel = new OutlineLabel();
             datePanel.Top = newPlus60TimeSlot.Bottom;
-            datePanel.Width = clockPanel.Width *3 ;
+            datePanel.Width = (grid.Width / 4) * 3;
             datePanel.Height = clockPanel.Height;
             datePanel.Left = blank.Right;
             datePanel.BackColor = gridBackground;
-            datePanel.BorderStyle = BorderStyle.Fixed3D;
-            dateLabel.Top = 0;
-            dateLabel.Left = 0;
-            dateLabel.Height = datePanel.Height;
-            dateLabel.Width = datePanel.Width;
+            datePanel.BorderStyle = BorderStyle.None;
+            datePanel.BorderSize = BoxBorderSize;
+            dateLabel.Top = BoxBorderSize;
+            dateLabel.Left = BoxBorderSize  ;
+            dateLabel.Height = datePanel.Height - (BoxBorderSize * 2);
+            dateLabel.Width = datePanel.Width - (BoxBorderSize * 2);
             dateLabel.Font = font;
             dateLabel.ForeColor = timeForeground;
             dateLabel.TextAlign = ContentAlignment.MiddleCenter;
-            dateLabel.Text = currentTimeSlot.ToString("dddd MMMM d yyyy");
+            dateLabel.Text = DateTime.Now.ToString("dddd MMMM d yyyy");
             datePanel.Controls.Add(dateLabel);
             grid.Controls.Add(datePanel);
 
@@ -528,22 +544,25 @@ namespace EPG
             var stationList = stations.OrderBy(station => station.LogicalChannelNumber).ThenBy(station => station.MinorChannelNumber).ThenBy(station => station.ServiceID).Where(station => station.Included).ToList();
             foreach (TVStation channel in stationList)
             {
-                Panel channelPanel = new Panel();
-                Label channelNum = new Label();
-                Label channelName = new Label();
+                Box channelPanel = new Box();
+                Label channelNum = new OutlineLabel();
+                Label channelName = new OutlineLabel();
 
-                channelPanel.Left = topRow.Left;
+                channelPanel.Left = 0;
                 channelPanel.Width = clockPanel.Width;
                 channelPanel.Height = rowHeight * 2;
                 channelPanel.Top = gridBottom;
                 channelPanel.BackColor = gridBackground;
-                channelPanel.BorderStyle = BorderStyle.Fixed3D;
-                channelNum.Top = 0;
-                channelNum.Left = 0;
-                channelNum.Width = channelPanel.Width - (textMargin * 2);
-                channelNum.Height = channelPanel.Height / 2;
+                channelPanel.BorderStyle = BorderStyle.None;
+                channelPanel.BorderSize = BoxBorderSize;
+                channelNum.AutoSize = false;
+                channelNum.Top = BoxBorderSize;
+                channelNum.Left = BoxBorderSize;
+                channelNum.Width = channelPanel.Width - (BoxBorderSize * 2);
+                channelNum.Height = (channelPanel.Height / 2) - BoxBorderSize;
                 channelNum.Font = font;
                 channelNum.ForeColor = timeForeground;
+                channelNum.TextAlign = ContentAlignment.MiddleCenter;
                 if (channel.MinorChannelNumber > -1)
                     channelNum.Text = channel.TransportStreamID.ToString() + "." + channel.MinorChannelNumber.ToString();
                 else if (channel.LogicalChannelNumber > -1)
@@ -551,10 +570,11 @@ namespace EPG
                 else
                     channelNum.Text = channel.TransportStreamID.ToString();
                 channelNum.TextAlign = ContentAlignment.MiddleCenter;
+                channelName.AutoSize = false;
                 channelName.Top = channelNum.Bottom;
-                channelName.Left = 0;
-                channelName.Width = channelPanel.Width - (textMargin * 2);
-                channelName.Height = channelPanel.Height / 2;
+                channelName.Left = BoxBorderSize;
+                channelName.Width = channelPanel.Width - (BoxBorderSize * 2);
+                channelName.Height = (channelPanel.Height / 2) - BoxBorderSize;
                 channelName.Font = font;
                 channelName.ForeColor = timeForeground;
                 channelName.Text = channel.Name;
@@ -576,8 +596,8 @@ namespace EPG
                         TimeSpan contThreshold = new TimeSpan(0, 2, 0);
                         if (programStartTime < secondTimeSlot.AddMinutes(30) && programEndTime > currentTimeSlot)
                         {
-                            Panel programPanel = new Panel();
-                            Label programLabel = new Label
+                            Box programPanel = new Box() {  BorderSize = BoxBorderSize };
+                            Label programLabel = new Label()
                             {
                                 Text = program.EventName
                             };
@@ -619,13 +639,13 @@ namespace EPG
                             programPanel.Height = channelPanel.Height;
                             programPanel.BackColor = gridBackground;
                             programPanel.SendToBack();
-                            programPanel.BorderStyle = BorderStyle.Fixed3D;
+                            programPanel.BorderStyle = BorderStyle.None;
                             programLabel.Font = font;
                             programLabel.ForeColor = gridForeground;
-                            programLabel.Left = textMargin;
-                            programLabel.Width = programPanel.Width - (textMargin * 2);
-                            programLabel.Top = textMargin;
-                            programLabel.Height = programPanel.Height - (textMargin * 2);
+                            programLabel.Left = BoxBorderSize + BoxBorderSize;
+                            programLabel.Width = programPanel.Width - (BoxBorderSize * 2);
+                            programLabel.Top = BoxBorderSize;
+                            programLabel.Height = programPanel.Height - (BoxBorderSize * 2);
                             programLabel.TextAlign = ContentAlignment.TopLeft;
                             programPanel.Controls.Add(programLabel);
                                         
@@ -637,19 +657,19 @@ namespace EPG
                     }
                     if (noprograms)
                     {
-                        Panel staticPanel = new Panel();
-                        Label staticLabel = new Label();
+                        Box staticPanel = new Box() { BorderSize = BoxBorderSize };
+                        Label staticLabel = new OutlineLabel();
                         staticPanel.Width = channelPanel.Width * 3;
                         staticPanel.Height = channelPanel.Height;
                         staticPanel.Top = channelPanel.Top;
                         staticPanel.Left = channelPanel.Right;
                         staticPanel.BackColor = gridBackground;
-                        staticPanel.BorderStyle = BorderStyle.Fixed3D;
+                        staticPanel.BorderStyle = BorderStyle.None;
                         staticPanel.SendToBack();
-                        staticLabel.Width = staticPanel.Width - (textMargin * 2);
-                        staticLabel.Height = staticPanel.Height - (textMargin * 2);
-                        staticLabel.Left = textMargin;
-                        staticLabel.Top = textMargin;
+                        staticLabel.Width = staticPanel.Width - (BoxBorderSize * 2);
+                        staticLabel.Height = staticPanel.Height - (BoxBorderSize * 2);
+                        staticLabel.Left = BoxBorderSize;
+                        staticLabel.Top = BoxBorderSize;
                         staticLabel.ForeColor = gridForeground;
                         staticLabel.Font = font;
                         staticLabel.TextAlign = ContentAlignment.TopLeft;
@@ -660,19 +680,19 @@ namespace EPG
                 }
                 catch
                 {
-                    Panel staticPanel = new Panel();
-                    Label staticLabel = new Label();
+                    Panel staticPanel = new Box() { BorderSize = BoxBorderSize };
+                    Label staticLabel = new OutlineLabel();
                     staticPanel.Width = channelPanel.Width * 3;
                     staticPanel.Height = channelPanel.Height;
                     staticPanel.Top = channelPanel.Top;
                     staticPanel.Left = channelPanel.Right;
                     staticPanel.BackColor = gridBackground;
-                    staticPanel.BorderStyle = BorderStyle.Fixed3D;
+                    staticPanel.BorderStyle = BorderStyle.None;
                     staticPanel.SendToBack();
-                    staticLabel.Width = staticPanel.Width - (textMargin * 2);
-                    staticLabel.Height = staticPanel.Height - (textMargin * 2);
-                    staticLabel.Left = textMargin;
-                    staticLabel.Top = textMargin;
+                    staticLabel.Width = staticPanel.Width - (BoxBorderSize * 2);
+                    staticLabel.Height = staticPanel.Height - (BoxBorderSize * 2);
+                    staticLabel.Left = BoxBorderSize;
+                    staticLabel.Top = BoxBorderSize;
                     staticLabel.ForeColor = gridForeground;
                     staticLabel.Font = font;
                     staticLabel.TextAlign = ContentAlignment.TopLeft;
@@ -683,19 +703,19 @@ namespace EPG
                 
                 gridBottom = channelPanel.Bottom;
             }
-            Panel endPanel = new Panel();
-            Label endLabel = new Label();
-            endPanel.Width = clockPanel.Width * 4;
+            Panel endPanel = new Box() { BorderSize = BoxBorderSize };
+            Label endLabel = new OutlineLabel();
+            endPanel.Width = (grid.Width / 4) * 4;
             endPanel.Height = rowHeight;
             endPanel.Top = gridBottom;
-            endPanel.Left = gridMargin;
+            endPanel.Left = 0;
             endPanel.BackColor = endBackground;
-            endPanel.BorderStyle = BorderStyle.Fixed3D;
+            endPanel.BorderStyle = BorderStyle.None;
             endPanel.SendToBack();
-            endLabel.Width = endPanel.Width - (textMargin * 2);
-            endLabel.Height = endPanel.Height - (textMargin * 2);
-            endLabel.Left = textMargin;
-            endLabel.Top = textMargin;
+            endLabel.Width = endPanel.Width - (BoxBorderSize * 2);
+            endLabel.Height = endPanel.Height - (BoxBorderSize * 2);
+            endLabel.Left = BoxBorderSize;
+            endLabel.Top = BoxBorderSize;
             endLabel.ForeColor = endForeground;
             endLabel.Font = font;
             endLabel.TextAlign = ContentAlignment.MiddleCenter;
@@ -709,22 +729,22 @@ namespace EPG
             
             grid.SendToBack();
             
-            if (grids.Count > 0)
-                grid.Top = (from box in grids select box.Bottom).Max();
+            if (grids.Controls.Count > 0)
+                grid.Top = grids.Controls[grids.Controls.Count - 1].Bottom;
             else
-                grid.Top = this.Bottom;
-            grids.Add(grid);
-            this.Controls.Add(grid);
+                grid.Top = 0;
+            grids.Controls.Add(grid);
             if (pauseatgrid == null)
             {
                 pauseatgrid = grid;
                 pauseatbox = (Panel)grid.Controls[6];
             }
-                
-            if (grids.Count < 2)
-                this.gridBottom = grid.Height + this.Height;
-            else 
-                this.gridBottom += grid.Height;
+
+            if (grids.Controls[grids.Controls.Count - 1].Bottom <= grids.Height * 2)
+            {
+                generateGrid();
+
+            }
 
         }
 
@@ -735,34 +755,34 @@ namespace EPG
             topRow.Left = gridMargin;
             topRow.Width = this.Width - (gridMargin * 2);
             topRow.Height = rowHeight;
-            topRow.BorderStyle = BorderStyle.None;
+            clock.AutoSize = false;
             clockPanel.Width = (this.Width - (gridMargin * 2)) / 4;
             clockPanel.Height = rowHeight;
-            clock.Width = clockPanel.Width - (textMargin * 2);
-            clock.Left = textMargin;
-            clock.Height = clockPanel.Height;
-            clock.Top = 0;
+            clock.Width = clockPanel.Width - (BoxBorderSize * 2);
+            clock.Left = BoxBorderSize;
+            clock.Height = clockPanel.Height - (BoxBorderSize * 2);
+            clock.Top = BoxBorderSize;
             clock.TextAlign = ContentAlignment.MiddleRight;
             clock.Font = font;
             clock.ForeColor = gridForeground;
             clockPanel.Visible = true;
             clockPanel.BackColor = timeBackground;
-            clockPanel.BorderStyle = BorderStyle.Fixed3D;
+            clockPanel.BorderStyle = BorderStyle.None;
             clockPanel.Controls.Add(clock);
             gridTimeCurrent.Top = this.Height;
+            grids.Top = topRow.Bottom;
+            grids.Left = gridMargin;
+            grids.Width = this.Width - (gridMargin * 2);
+            grids.Height = this.Height - topRow.Bottom;
+            title.Width = this.Width;
+            title.Top = 0;
+            title.Height = gridVerticalStart - (BoxBorderSize * 2);
 
-            //create the mask that hides the times as they get pushed off
-            topMask.BackColor = background;
-            topMask.Top = 0;
-            topMask.Height = topRow.Top;
-            topMask.Left = topRow.Left;
-            topMask.Width = this.Width - (gridMargin * 2);
-
-            foreach (Panel grid in grids)
+            foreach (Panel grid in grids.Controls)
             {
-                this.Controls.Remove(grid);
+                grids.Controls.Remove(grid);
             }
-            grids.Clear();
+            grids.Controls.Clear();
             pauseatbox = null;
             
         }
@@ -856,22 +876,25 @@ namespace EPG
                         endForeground = Color.FromArgb(Convert.ToInt32(colors[0]), Convert.ToInt32(colors[1]), Convert.ToInt32(colors[2]));
 
                         font = new Font(item["Font"].InnerText, Convert.ToInt32(item["FontSize"].InnerText));
-                        speed = Convert.ToInt32(item["Speed"].InnerText);
+                        speed = (float)Convert.ToDouble(item["Speed"].InnerText);
                         pauselength = Convert.ToInt32(item["PauseLength"].InnerText);
 
                         int tempgridmargin = Convert.ToInt32(item["GridMargin"].InnerText);
                         int tempverticalstart = Convert.ToInt32(item["GridVerticalStart"].InnerText);
                         int temprowheight = Convert.ToInt32(item["RowHeight"].InnerText);
-                        int tempmargin = Convert.ToInt32(item["TextMargin"].InnerText);
+                        int tempbordersize = Convert.ToInt32(item["BoxBorderSize"].InnerText);
+                        float tempfontoutlinesize = (float)Convert.ToDouble(item["FontOutlineSize"].InnerText);
                         
                         bool fullscreen = Convert.ToBoolean(item["Fullscreen"].InnerText);
 
-                        if (tempgridmargin != gridMargin || tempverticalstart != gridVerticalStart || temprowheight != rowHeight || tempmargin != textMargin || (this.FormBorderStyle == FormBorderStyle.None) != fullscreen)
+                        if (tempgridmargin != gridMargin || tempverticalstart != gridVerticalStart || temprowheight != rowHeight || (this.FormBorderStyle == FormBorderStyle.None) != fullscreen||
+                            BoxBorderSize != tempbordersize || FontOutlineSize != tempfontoutlinesize)
                         {
                             gridMargin = tempgridmargin;
                             gridVerticalStart = tempverticalstart;
                             rowHeight = temprowheight;
-                            textMargin = tempmargin;
+                            BoxBorderSize = tempbordersize;
+                            FontOutlineSize = tempfontoutlinesize;
                             if (fullscreen)
                             {
                                 this.FormBorderStyle = FormBorderStyle.None;
@@ -896,14 +919,13 @@ namespace EPG
                         listingInterval = Convert.ToInt32(item["GetListingsInverval"].InnerText);
 
                         title.Text = titletext;
-                        title.Width = topMask.Width - (textMargin * 2);
-                        title.Left = textMargin;
-                        title.Top = textMargin;
-                        title.Height = topMask.Height - (textMargin * 2);
+                        title.Width = this.Width - (BoxBorderSize * 2);
+                        title.Left = BoxBorderSize;
+                        title.Top = this.Top;
+                        title.Height = gridVerticalStart - (BoxBorderSize * 2);
                         title.Font = font;
                         title.ForeColor = gridForeground;
                         title.TextAlign = ContentAlignment.BottomCenter;
-                        topMask.BackColor = background;
                         clockPanel.BackColor = timeBackground;
                         clock.ForeColor = gridForeground;
                         clock.Font = font;
@@ -930,12 +952,5 @@ namespace EPG
         }
     }
 
-    internal class Grid : Panel
-    {
-        public bool hasTimePanels = true;
-        public Panel newCurrentTimeSlot;
-        public Panel newPlus30TimeSlot;
-        public Panel newPlus60TimeSlot;
-
-    }
+    
 }
