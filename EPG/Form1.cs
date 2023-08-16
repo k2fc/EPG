@@ -26,6 +26,7 @@ using System.Threading.Tasks;
 using System.Diagnostics;
 using System.ComponentModel;
 using System.Collections.ObjectModel;
+using System.Linq.Expressions;
 
 namespace EPG
 {
@@ -60,11 +61,12 @@ namespace EPG
         private Font font = new Font("Consolas",14);
         private string titletext = "";
         private string endText = "";
+        private string endLogo = "";
         private float speed = 1;
         private int listingInterval = 0;
         private int BoxBorderSize = 0;
         private float FontOutlineSize = 0;
-        private Panel pauseatbox;
+        private Control pauseatbox;
         private Grid pauseatgrid;
         private int pauselength = 2;
         private DateTime pauseuntil;
@@ -82,7 +84,7 @@ namespace EPG
             topRow.Left = gridMargin;
             topRow.Width = this.Width - (gridMargin * 2);
             topRow.Height = rowHeight;
-            topRow.BorderStyle = BorderStyle.FixedSingle;
+            topRow.BorderStyle = BorderStyle.None;
             clockPanel.Top = 0;
             clockPanel.Left = 0;
             clockPanel.Width = (this.Width - (gridMargin*2)) / 4;
@@ -105,7 +107,7 @@ namespace EPG
             grids.Left = gridMargin;
             grids.Width = this.Width - (gridMargin * 2);
             grids.Height = this.Height - topRow.Bottom;
-            grids.BorderStyle = BorderStyle.FixedSingle;
+            grids.BorderStyle = BorderStyle.None;
             this.Controls.Add(grids);
 
 
@@ -167,12 +169,12 @@ namespace EPG
                     
                     if (grid.Bottom > grids.Height && grid.Top < 0) // grid is visible
                     {
-                        foreach (Panel box in grid.Controls)
+                        foreach (Control box in grid.Controls)
                         {
                         
                             if (box.Bottom + grid.Top > grids.Height && box.Top + grid.Top > 0) // row is partially visible
                             {
-                                if (!foundnextpause)
+                                if (!foundnextpause& box.GetType() == typeof(Box))
                                 {
                                     pauseatgrid = grid;
                                     pauseatbox = box;
@@ -183,17 +185,17 @@ namespace EPG
                         if (!foundnextpause)
                         {
                             pauseatgrid = grid;
-                            pauseatbox = (Panel)grid.Controls[grid.Controls.Count - 1];
+                            pauseatbox = grid.Controls[grid.Controls.Count - 1];
                         }
                     }
                     else if (grid.Top < grids.Height && !foundnextpause)
                     {
-                        foreach (Panel box in grid.Controls)
+                        foreach (Control box in grid.Controls)
                         {
 
                             if (box.Bottom + grid.Top > grids.Height && box.Top + grid.Top > 0)
                             {
-                                if (!foundnextpause)
+                                if (!foundnextpause && box.GetType() == typeof(Box))
                                 {
                                     pauseatgrid = grid;
                                     pauseatbox = box;
@@ -204,8 +206,13 @@ namespace EPG
                         if (!foundnextpause)
                         {
                             pauseatgrid = grid;
-                            pauseatbox = (Panel)grid.Controls[grid.Controls.Count -1]; 
+                            pauseatbox = grid.Controls[grid.Controls.Count - 1]; 
                         }
+                    }
+                    else if (!foundnextpause)
+                    {
+                        pauseatgrid = grid;
+                        pauseatbox = grid.Controls[6];
                     }
                 }
 
@@ -346,7 +353,7 @@ namespace EPG
                             //gridTimePlus60.BringToFront();
                             
 
-                            pauseatbox = (Panel)grid.Controls[6];
+                            pauseatbox = grid.Controls[6];
                         }
 
                     }
@@ -642,7 +649,7 @@ namespace EPG
                             programPanel.BorderStyle = BorderStyle.None;
                             programLabel.Font = font;
                             programLabel.ForeColor = gridForeground;
-                            programLabel.Left = BoxBorderSize + BoxBorderSize;
+                            programLabel.Left = BoxBorderSize;
                             programLabel.Width = programPanel.Width - (BoxBorderSize * 2);
                             programLabel.Top = BoxBorderSize;
                             programLabel.Height = programPanel.Height - (BoxBorderSize * 2);
@@ -725,8 +732,33 @@ namespace EPG
             grid.Controls.Add(endPanel);
 
             title.Text = titletext;
-            grid.Height = gridBottom;
+
+            if (!string.IsNullOrEmpty(endLogo))
+            {
+                PictureBox logo = new PictureBox();
+                logo.ImageLocation = endLogo;
+                try
+                {
+                    logo.Load();
+                }
+                catch
+                {
+
+                }
+                if (logo.Image != null)
+                {
+                    var ar = ((double)(logo.Image.Width) / logo.Image.Height);
+                    logo.Left = 0;
+                    logo.Width = (grid.Width / 4) * 4;
+                    logo.Height = (int)(logo.Width / ar);
+                    logo.Top = gridBottom;
+                    logo.SizeMode = PictureBoxSizeMode.Zoom;
+                    gridBottom = logo.Bottom;
+                    grid.Controls.Add(logo);
+                }
+            }
             
+            grid.Height = gridBottom;
             grid.SendToBack();
             
             if (grids.Controls.Count > 0)
@@ -737,7 +769,7 @@ namespace EPG
             if (pauseatgrid == null)
             {
                 pauseatgrid = grid;
-                pauseatbox = (Panel)grid.Controls[6];
+                pauseatbox = grid.Controls[6];
             }
 
             if (grids.Controls[grids.Controls.Count - 1].Bottom <= grids.Height * 2)
@@ -884,17 +916,19 @@ namespace EPG
                         int temprowheight = Convert.ToInt32(item["RowHeight"].InnerText);
                         int tempbordersize = Convert.ToInt32(item["BoxBorderSize"].InnerText);
                         float tempfontoutlinesize = (float)Convert.ToDouble(item["FontOutlineSize"].InnerText);
+                        string tempLogo = item["LogoPath"].InnerText;
                         
                         bool fullscreen = Convert.ToBoolean(item["Fullscreen"].InnerText);
 
                         if (tempgridmargin != gridMargin || tempverticalstart != gridVerticalStart || temprowheight != rowHeight || (this.FormBorderStyle == FormBorderStyle.None) != fullscreen||
-                            BoxBorderSize != tempbordersize || FontOutlineSize != tempfontoutlinesize)
+                            BoxBorderSize != tempbordersize || FontOutlineSize != tempfontoutlinesize || endLogo != tempLogo)
                         {
                             gridMargin = tempgridmargin;
                             gridVerticalStart = tempverticalstart;
                             rowHeight = temprowheight;
                             BoxBorderSize = tempbordersize;
                             FontOutlineSize = tempfontoutlinesize;
+                            endLogo = tempLogo;
                             if (fullscreen)
                             {
                                 this.FormBorderStyle = FormBorderStyle.None;
