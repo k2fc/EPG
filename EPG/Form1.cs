@@ -215,6 +215,10 @@ namespace EPG
                         pauseatgrid = grid;
                         pauseatbox = grid.Controls[6];
                     }
+                    if (pauseatgrid == grid && grid.Controls.IndexOf(pauseatbox) < 6)
+                    {
+                        pauseatbox = grid.Controls[6];
+                    }
                 }
 
                 if (grids.Controls.Count == 0 || grids.Controls[grids.Controls.Count - 1].Bottom <= grids.Height * 2)
@@ -818,7 +822,7 @@ namespace EPG
             grids.Height = this.Height - topRow.Bottom;
             title.Width = this.Width;
             title.Top = 0;
-            title.Height = gridVerticalStart - (BoxBorderSize * 2);
+            title.Height = gridVerticalStart;
 
             foreach (Panel grid in grids.Controls)
             {
@@ -967,7 +971,7 @@ namespace EPG
                         title.Width = this.Width - (BoxBorderSize * 2);
                         title.Left = BoxBorderSize;
                         title.Top = this.Top;
-                        title.Height = gridVerticalStart - (BoxBorderSize * 2);
+                        title.Height = gridVerticalStart;
                         title.Font = font;
                         title.ForeColor = gridForeground;
                         title.TextAlign = ContentAlignment.BottomCenter;
