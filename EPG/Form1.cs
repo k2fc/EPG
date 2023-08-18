@@ -27,6 +27,7 @@ using System.Diagnostics;
 using System.ComponentModel;
 using System.Collections.ObjectModel;
 using System.Linq.Expressions;
+using System.Reflection;
 
 namespace EPG
 {
@@ -67,6 +68,11 @@ namespace EPG
         private int listingInterval = 0;
         private int BoxBorderSize = 0;
         private float FontOutlineSize = 0;
+        private Bitmap dualArrowLeft;
+        private Bitmap dualArrowRight;
+        private Bitmap arrowLeft;
+        private Bitmap arrowRight;
+
         private Control pauseatbox;
         private Grid pauseatgrid;
         private int pauselength = 2;
@@ -114,7 +120,23 @@ namespace EPG
 
 
             formResize(null, null);
-            
+            using (Stream imgStream = Assembly.GetExecutingAssembly().GetManifestResourceStream("EPG.Resources.Dual Arrow Left.png"))
+            {
+                dualArrowLeft = new Bitmap(imgStream);
+            }
+            using (Stream imgStream = Assembly.GetExecutingAssembly().GetManifestResourceStream("EPG.Resources.Dual Arrow Right.png"))
+            {
+                dualArrowRight = new Bitmap(imgStream);
+            }
+            using (Stream imgStream = Assembly.GetExecutingAssembly().GetManifestResourceStream("EPG.Resources.Single Arrow Left.png"))
+            {
+                arrowLeft = new Bitmap(imgStream);
+            }
+            using (Stream imgStream = Assembly.GetExecutingAssembly().GetManifestResourceStream("EPG.Resources.Single Arrow Right.png"))
+            {
+                arrowRight = new Bitmap(imgStream);
+            }
+
             Task.Run(() => GetGuideData());
             timer1.Start();
             title.Top = 0;
@@ -564,6 +586,10 @@ namespace EPG
             ////XmltvIdFormat.
             channels = configFile.GetElementsByTagName("channel");
             var stationList = stations.OrderBy(station => station.LogicalChannelNumber).ThenBy(station => station.MinorChannelNumber).ThenBy(station => station.ServiceID).Where(station => station.Included).ToList();
+            
+            var arrowWidth = (int)((arrowLeft.Width / (double)arrowLeft.Height) * (channelRowHeight - (2 * BoxBorderSize)));
+            var dualArrowWidth = (int)((dualArrowLeft.Width / (double)dualArrowLeft.Height) * (channelRowHeight - (2 * BoxBorderSize)));
+
             foreach (TVStation channel in stationList)
             {
                 Box channelPanel = new Box();
@@ -612,6 +638,7 @@ namespace EPG
                     channelName.Text = channel.Name.Trim().ToUpper();
 
                     bool noprograms = true;
+
                     foreach (var program in channel.EPGCollection)
                     {
                         DateTime programStartTime = program.StartTime.ToLocalTime();
@@ -619,7 +646,14 @@ namespace EPG
                         TimeSpan contThreshold = new TimeSpan(0, 2, 0);
                         if (programStartTime < secondTimeSlot.AddMinutes(30) && programEndTime > currentTimeSlot)
                         {
-                            Box programPanel = new Box() {  BorderSize = BoxBorderSize, BorderColor = gridForeground };
+                            Box programPanel = new Box() 
+                            {  
+                                BorderSize = BoxBorderSize, 
+                                BorderColor = gridForeground ,
+                                Top = channelPanel.Top,
+                                Height = channelPanel.Height
+                            };
+
                             Label programLabel = new Label()
                             {
                                 Text = program.EventName
@@ -628,48 +662,216 @@ namespace EPG
                             {
                                 programPanel.Left = channelPanel.Right;
                                 programPanel.Width = timeslotwidth * 3;
-                                programLabel.Text = "";
-                                if (programStartTime < currentTimeSlot - contThreshold)
-                                    programLabel.Text = "< ";
-                                programLabel.Text += program.EventName;
-                                if (programEndTime > secondTimeSlot + new TimeSpan(0,30,0) + contThreshold)
-                                    programLabel.Text += " >";
+                                programLabel.Width = programPanel.Width - (2 * programPanel.BorderSize);
+                                if (programStartTime < currentTimeSlot - new TimeSpan(0, 30, 0) - contThreshold)
+                                {
+                                    var arrow = new PictureBox()
+                                    {
+                                        Image = dualArrowLeft,
+                                        Width = dualArrowWidth,
+                                        Height = programPanel.Height - (2 * programPanel.BorderSize),
+                                        Left = programPanel.BorderSize,
+                                        Top = programPanel.BorderSize,
+                                        SizeMode = PictureBoxSizeMode.Zoom
+                                    };
+                                    programLabel.Left = arrow.Right;
+                                    if (programLabel.Width > arrow.Width)
+                                    {
+                                        programLabel.Width -= arrow.Width;
+                                    }
+                                    else
+                                    {
+                                        programLabel.Width = 0;
+                                    }
+                                    programPanel.Controls.Add(arrow);
+                                }
+                                else if (programStartTime < currentTimeSlot - contThreshold)
+                                {
+                                    var arrow = new PictureBox()
+                                    {
+                                        Image = arrowLeft,
+                                        Width = arrowWidth,
+                                        Height = programPanel.Height - (2 * programPanel.BorderSize),
+                                        Left = programPanel.BorderSize,
+                                        Top = programPanel.BorderSize,
+                                        SizeMode = PictureBoxSizeMode.Zoom
+                                    };
+                                    programLabel.Left = arrow.Right;
+                                    if (programLabel.Width > arrow.Width)
+                                    {
+                                        programLabel.Width -= arrow.Width;
+                                    }
+                                    else
+                                    {
+                                        programLabel.Width = 0;
+                                    }
+                                    programPanel.Controls.Add(arrow);
+                                }
+                                else
+                                {
+                                    programLabel.Left = BoxBorderSize;
+                                }
+                                if (programEndTime > secondTimeSlot + new TimeSpan(0,60,0) + contThreshold)
+                                {
+                                    var arrow = new PictureBox()
+                                    {
+                                        Image = dualArrowRight,
+                                        Width = dualArrowWidth,
+                                        Height = programPanel.Height - (2 * programPanel.BorderSize),
+                                        Top = programPanel.BorderSize,
+                                        SizeMode = PictureBoxSizeMode.Zoom
+                                    };
+                                    if (programLabel.Width > arrow.Width)
+                                    {
+                                        programLabel.Width -= arrow.Width;
+                                    }
+                                    else
+                                    {
+                                        programLabel.Width = 0;
+                                    }
+                                    arrow.Left = programLabel.Right;
+                                    programPanel.Controls.Add(arrow);
+                                }
+                                else if (programEndTime > secondTimeSlot + new TimeSpan(0, 30, 0) + contThreshold)
+                                {
+                                    var arrow = new PictureBox()
+                                    {
+                                        Image = arrowRight,
+                                        Width = arrowWidth,
+                                        Height = programPanel.Height - (2 * programPanel.BorderSize),
+                                        Top = programPanel.BorderSize,
+                                        SizeMode = PictureBoxSizeMode.Zoom
+                                    };
+                                    if (programLabel.Width > arrow.Width)
+                                    {
+                                        programLabel.Width -= arrow.Width;
+                                    }
+                                    else
+                                    {
+                                        programLabel.Width = 0;
+                                    }
+                                    arrow.Left = programLabel.Right;
+                                    programPanel.Controls.Add(arrow);
+                                }
                             }
                             else if (programStartTime < currentTimeSlot)
                             {
                                 programPanel.Left = channelPanel.Right;
                                 programPanel.Width = Convert.ToInt32(programEndTime.Subtract(currentTimeSlot).TotalMinutes) * timeslotwidth / 30;
-                                programLabel.Text = "";
-                                if (programStartTime < currentTimeSlot - contThreshold)
-                                    programLabel.Text = "< ";
-                                programLabel.Text += program.EventName;
+                                programLabel.Width = programPanel.Width - (2 * programPanel.BorderSize);
+                                programLabel.Text = program.EventName;
+                                if (programStartTime < currentTimeSlot - new TimeSpan(0, 30, 0) - contThreshold)
+                                {
+                                    var arrow = new PictureBox()
+                                    {
+                                        Image = dualArrowLeft,
+                                        Width = dualArrowWidth,
+                                        Height = programPanel.Height - (2 * programPanel.BorderSize),
+                                        Left = programPanel.BorderSize,
+                                        Top = programPanel.BorderSize,
+                                        SizeMode = PictureBoxSizeMode.Zoom
+                                    };
+                                    programLabel.Left = arrow.Right;
+                                    if (programLabel.Width > arrow.Width)
+                                    {
+                                        programLabel.Width -= arrow.Width;
+                                    }
+                                    else
+                                    {
+                                        programLabel.Width = 0;
+                                    }
+                                    programPanel.Controls.Add(arrow);
+                                }
+                                else if (programStartTime < currentTimeSlot - contThreshold)
+                                {
+                                    var arrow = new PictureBox()
+                                    {
+                                        Image = arrowLeft,
+                                        Width = arrowWidth,
+                                        Height = programPanel.Height - (2 * programPanel.BorderSize),
+                                        Left = programPanel.BorderSize,
+                                        Top = programPanel.BorderSize,
+                                        SizeMode = PictureBoxSizeMode.Zoom
+                                    };
+                                    programLabel.Left = arrow.Right;
+                                    if (programLabel.Width > arrow.Width)
+                                    {
+                                        programLabel.Width -= arrow.Width;
+                                    }
+                                    else
+                                    {
+                                        programLabel.Width = 0;
+                                    }
+                                    programPanel.Controls.Add(arrow);
+                                }
                             }
                             else if (programEndTime > secondTimeSlot + new TimeSpan(0,30,0))
                             {
                                 programPanel.Left = channelPanel.Right + Convert.ToInt32(programStartTime.Subtract(currentTimeSlot).TotalMinutes) * timeslotwidth / 30;
                                 programPanel.Width = Convert.ToInt32(secondTimeSlot.AddMinutes(30).Subtract(programStartTime).TotalMinutes) * timeslotwidth / 30;
+                                programLabel.Width = programPanel.Width - (2 * BoxBorderSize);
                                 programLabel.Text = program.EventName;
-                                if (programEndTime > secondTimeSlot + new TimeSpan(0, 30, 0) + contThreshold)
-                                    programLabel.Text += " >";
+                                programLabel.Left = programPanel.BorderSize;
+                                if (programEndTime > secondTimeSlot + new TimeSpan(0, 60, 0) + contThreshold)
+                                {
+                                    var arrow = new PictureBox()
+                                    {
+                                        Image = dualArrowRight,
+                                        Width = dualArrowWidth,
+                                        Height = programPanel.Height - (2 * programPanel.BorderSize),
+                                        Top = programPanel.BorderSize,
+                                        SizeMode = PictureBoxSizeMode.Zoom
+                                    };
+                                    if (programLabel.Width > arrow.Width)
+                                    {
+                                        programLabel.Width -= arrow.Width;
+                                    }
+                                    else
+                                    {
+                                        programLabel.Width = 0;
+                                    }
+                                    arrow.Left = programLabel.Right;
+                                    programPanel.Controls.Add(arrow);
+                                }
+                                else if (programEndTime > secondTimeSlot + new TimeSpan(0, 30, 0) + contThreshold)
+                                {
+                                    var arrow = new PictureBox()
+                                    {
+                                        Image = arrowRight,
+                                        Width = arrowWidth,
+                                        Height = programPanel.Height - (2 * programPanel.BorderSize),
+                                        Top = programPanel.BorderSize,
+                                        SizeMode = PictureBoxSizeMode.Zoom
+                                    };
+                                    if (programLabel.Width > arrow.Width)
+                                    {
+                                        programLabel.Width -= arrow.Width;
+                                    }
+                                    else
+                                    {
+                                        programLabel.Width = 0;
+                                    }
+                                    arrow.Left = programLabel.Right;
+                                    programPanel.Controls.Add(arrow);
+                                }
                             }
                             else
                             {
                                 programPanel.Left = channelPanel.Right + Convert.ToInt32(programStartTime.Subtract(currentTimeSlot).TotalMinutes) * timeslotwidth / 30;
                                 programPanel.Width = Convert.ToInt32(programEndTime.Subtract(programStartTime).TotalMinutes) * timeslotwidth / 30;
+                                programLabel.Width = programPanel.Width - (2 * BoxBorderSize);
+                                programLabel.Left = BoxBorderSize;
                             }
 
-                            programPanel.Top = channelPanel.Top;
-                            programPanel.Height = channelPanel.Height;
+                            
                             programPanel.BackColor = gridBackground;
                             programPanel.SendToBack();
                             programPanel.BorderStyle = BorderStyle.None;
                             programLabel.Font = font;
                             programLabel.ForeColor = gridForeground;
-                            programLabel.Left = BoxBorderSize;
-                            programLabel.Width = programPanel.Width - (BoxBorderSize * 2);
-                            programLabel.Top = BoxBorderSize;
                             programLabel.Height = programPanel.Height - (BoxBorderSize * 2);
                             programLabel.TextAlign = ContentAlignment.TopLeft;
+                            programLabel.Top = BoxBorderSize;
                             programPanel.Controls.Add(programLabel);
                                         
                             programLabel.UseMnemonic = false;

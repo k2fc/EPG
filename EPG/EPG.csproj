@@ -145,6 +145,10 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Content Include="EPGCollector.pdb" />
+    <EmbeddedResource Include="Resources\Dual Arrow Left.png" />
+    <EmbeddedResource Include="Resources\Dual Arrow Right.png" />
+    <EmbeddedResource Include="Resources\Single Arrow Left.png" />
+    <EmbeddedResource Include="Resources\Single Arrow Right.png" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
