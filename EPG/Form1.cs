@@ -49,7 +49,8 @@ namespace EPG
         private Mutex cancelMutex;
         private int gridMargin = 25;
         private int gridVerticalStart = 240;
-        private int rowHeight = 34;
+        private int topRowHeight = 34;
+        private int channelRowHeight = 56;
         private int lookahead = 0;
         private Color background;
         private Color timeBackground;
@@ -83,11 +84,11 @@ namespace EPG
             topRow.Top = gridVerticalStart;
             topRow.Left = gridMargin;
             topRow.Width = this.Width - (gridMargin * 2);
-            topRow.Height = rowHeight;
+            topRow.Height = topRowHeight;
             topRow.BorderStyle = BorderStyle.None;
             clockPanel.Top = 0;
             clockPanel.Left = 0;
-            clockPanel.Height = rowHeight;
+            clockPanel.Height = topRowHeight;
             clock.Width = clockPanel.Width - (BoxBorderSize * 2);
             clock.Left = BoxBorderSize;
             clock.Height = clockPanel.Height;
@@ -571,7 +572,7 @@ namespace EPG
 
                 channelPanel.Left = 0;
                 channelPanel.Width = clockPanel.Width;
-                channelPanel.Height = rowHeight * 2;
+                channelPanel.Height = channelRowHeight;
                 channelPanel.Top = gridBottom;
                 channelPanel.BackColor = gridBackground;
                 channelPanel.BorderStyle = BorderStyle.None;
@@ -728,7 +729,7 @@ namespace EPG
             Panel endPanel = new Box() { BorderSize = BoxBorderSize, BorderColor = gridForeground };
             Label endLabel = new OutlineLabel();
             endPanel.Width = (grid.Width / 4) * 4;
-            endPanel.Height = rowHeight;
+            endPanel.Height = topRowHeight;
             endPanel.Top = gridBottom;
             endPanel.Left = 0;
             endPanel.BackColor = endBackground;
@@ -801,9 +802,9 @@ namespace EPG
             topRow.Top = gridVerticalStart;
             topRow.Left = gridMargin;
             topRow.Width = this.Width - (gridMargin * 2);
-            topRow.Height = rowHeight;
+            topRow.Height = topRowHeight;
             clock.AutoSize = false;
-            clockPanel.Height = rowHeight;
+            clockPanel.Height = topRowHeight;
             clock.Width = clockPanel.Width - (BoxBorderSize * 2);
             clock.Left = BoxBorderSize;
             clock.Height = clockPanel.Height - (BoxBorderSize * 2);
@@ -927,7 +928,8 @@ namespace EPG
 
                         int tempgridmargin = Convert.ToInt32(item["GridMargin"].InnerText);
                         int tempverticalstart = Convert.ToInt32(item["GridVerticalStart"].InnerText);
-                        int temprowheight = Convert.ToInt32(item["RowHeight"].InnerText);
+                        int temprowheight = Convert.ToInt32(item["TopRowHeight"].InnerText);
+                        int tempchrowheight = Convert.ToInt32(item["ChannelRowHeight"].InnerText);
                         int tempbordersize = Convert.ToInt32(item["BoxBorderSize"].InnerText);
                         clockPanel.Width = Convert.ToInt32(item["ClockWidth"].InnerText);
                         float tempfontoutlinesize = (float)Convert.ToDouble(item["FontOutlineSize"].InnerText);
@@ -935,15 +937,16 @@ namespace EPG
                         
                         bool fullscreen = Convert.ToBoolean(item["Fullscreen"].InnerText);
 
-                        if (tempgridmargin != gridMargin || tempverticalstart != gridVerticalStart || temprowheight != rowHeight || (this.FormBorderStyle == FormBorderStyle.None) != fullscreen||
-                            BoxBorderSize != tempbordersize || FontOutlineSize != tempfontoutlinesize || endLogo != tempLogo)
+                        if (tempgridmargin != gridMargin || tempverticalstart != gridVerticalStart || temprowheight != topRowHeight || (this.FormBorderStyle == FormBorderStyle.None) != fullscreen||
+                            BoxBorderSize != tempbordersize || FontOutlineSize != tempfontoutlinesize || endLogo != tempLogo || channelRowHeight != tempchrowheight)
                         {
                             gridMargin = tempgridmargin;
                             gridVerticalStart = tempverticalstart;
-                            rowHeight = temprowheight;
+                            topRowHeight = temprowheight;
                             BoxBorderSize = tempbordersize;
                             FontOutlineSize = tempfontoutlinesize;
                             endLogo = tempLogo;
+                            channelRowHeight = tempchrowheight;
                             if (fullscreen)
                             {
                                 this.FormBorderStyle = FormBorderStyle.None;
