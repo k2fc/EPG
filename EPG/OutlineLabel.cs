@@ -12,22 +12,29 @@ namespace EPG
 {
     internal class OutlineLabel : Label
     {
+        private float dropShadowDistance;
         private float borderSize;
         private Color borderColor;
 
         private PointF point;
+        private RectangleF offsetrect;
         private SizeF drawSize;
         private Pen drawPen;
         private GraphicsPath drawPath;
+        private GraphicsPath shadowPath;
         private SolidBrush forecolorBrush;
+        private SolidBrush shadowBrush;
 
         public OutlineLabel()
         {
             this.borderSize = 1.5f;
             this.borderColor = Color.Black;
+            this.dropShadowDistance = 2;
             this.drawPath = new GraphicsPath();
+            this.shadowPath = new GraphicsPath();
             this.drawPen = new Pen(new SolidBrush(this.borderColor), borderSize);
             this.forecolorBrush = new SolidBrush(this.ForeColor);
+            this.shadowBrush = new SolidBrush(this.borderColor);
             this.Invalidate();
         }
         [Browsable(false)]
@@ -52,6 +59,9 @@ namespace EPG
                 this.OnTextChanged(EventArgs.Empty);
             }
         }
+        [Browsable(false)]
+        [Category("Appearance")]
+        [Description("The border's color")]
         public Color BorderColor
         {
             get { return this.borderColor;}
@@ -61,7 +71,16 @@ namespace EPG
 
                 if (this.BorderSize != 0)
                     this.drawPen.Color = value;
-
+                this.shadowBrush.Color = value;
+                this.Invalidate();
+            }
+        }
+        public float DropShadowDistance
+        {
+            get { return this.dropShadowDistance; }
+            set
+            {
+                this.dropShadowDistance = value;
                 this.Invalidate();
             }
         }
@@ -73,15 +92,22 @@ namespace EPG
             e.Graphics.SmoothingMode = SmoothingMode.AntiAlias;
             e.Graphics.CompositingQuality = CompositingQuality.HighQuality;
             StringFormat sf = new StringFormat();
-            this.drawSize = e.Graphics.MeasureString(this.Text, this.Font, new PointF(), sf);
-
+            
             if (this.AutoSize)
             {
                 this.point.X = this.Padding.Left;
                 this.point.Y = this.Padding.Top;
+                this.drawSize = e.Graphics.MeasureString(this.Text, this.Font, new PointF(), sf);
+                this.Size = new Size((int)(this.drawSize.Width + this.Padding.Left + this.Padding.Right), (int)(this.drawSize.Height + this.Padding.Top + this.Padding.Bottom));
             }
             else
             {
+                var testSize = new SizeF()
+                {
+                    Width = this.Size.Width,
+                    Height = 1000
+                };
+                this.drawSize = e.Graphics.MeasureString(this.Text, this.Font, testSize);
                 if (this.TextAlign == ContentAlignment.TopLeft ||
                     this.TextAlign == ContentAlignment.MiddleLeft ||
                     this.TextAlign == ContentAlignment.BottomLeft)
@@ -101,15 +127,26 @@ namespace EPG
                     this.TextAlign == ContentAlignment.BottomRight)
                     this.point.Y = this.Height - (this.Padding.Bottom + this.drawSize.Height);
                 else point.Y = (this.Height - this.drawSize.Height) / 2;
-
-                float fontSize = e.Graphics.DpiY * this.Font.SizeInPoints / 72;
-
-                this.drawPath.Reset();
-                this.drawPath.AddString(this.Text, this.Font.FontFamily, (int)this.Font.Style, fontSize, point, sf);
-
-                e.Graphics.FillPath(this.forecolorBrush, this.drawPath);
-                e.Graphics.DrawPath(this.drawPen, this.drawPath);
             }
+            var rect = new RectangleF(point, this.drawSize);
+            float fontSize = e.Graphics.DpiY * this.Font.SizeInPoints / 72;
+
+            this.drawPath.Reset();
+            this.drawPath.AddString(this.Text, this.Font.FontFamily, (int)this.Font.Style, fontSize, rect, sf);
+
+
+            //RenderDropshadowText(e.Graphics, this.Text, this.Font, this.ForeColor,this.BorderColor, 255, point);
+            offsetrect = new RectangleF()
+            {
+                Location = new PointF(point.X + this.dropShadowDistance, point.Y + this.dropShadowDistance),
+                Size = rect.Size
+            };
+            this.shadowPath.Reset();
+            this.shadowPath.AddString(this.Text, this.Font.FontFamily, (int)this.Font.Style, fontSize, offsetrect, sf);
+
+            e.Graphics.FillPath(this.shadowBrush, this.shadowPath);
+            e.Graphics.FillPath(this.forecolorBrush, this.drawPath);
+            e.Graphics.DrawPath(this.drawPen, this.drawPath);
         }
 
         protected override void Dispose(bool disposing)
@@ -117,7 +154,9 @@ namespace EPG
             if (disposing)
             {
                 if (this.forecolorBrush != null) this.forecolorBrush.Dispose();
+                if (this.shadowBrush != null) this.shadowBrush.Dispose();
                 if (this.drawPath != null) this.drawPath.Dispose();
+                if (this.shadowPath != null) this.shadowPath.Dispose();
                 if (this.drawPen != null) this.drawPen.Dispose();
             }
             base.Dispose(disposing);

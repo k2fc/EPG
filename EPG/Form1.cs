@@ -68,6 +68,7 @@ namespace EPG
         private int listingInterval = 0;
         private int BoxBorderSize = 0;
         private float FontOutlineSize = 0;
+        private float dropShadowSize = 2;
         private Bitmap dualArrowLeft;
         private Bitmap dualArrowRight;
         private Bitmap arrowLeft;
@@ -315,6 +316,7 @@ namespace EPG
                                     ForeColor = timeForeground,
                                     BackColor = timeBackground,
                                     Font = ncLabel.Font,
+                                    DropShadowDistance = dropShadowSize,
                                     TextAlign = ContentAlignment.MiddleCenter
                                 });
                                 nextP30.Controls.Add(new OutlineLabel()
@@ -327,6 +329,7 @@ namespace EPG
                                     ForeColor = timeForeground,
                                     BackColor = timeBackground,
                                     Font = np30Label.Font,
+                                    DropShadowDistance = dropShadowSize,
                                     TextAlign = ContentAlignment.MiddleCenter
                                 });
                                 nextP60.Controls.Add(new OutlineLabel()
@@ -339,6 +342,7 @@ namespace EPG
                                     ForeColor = timeForeground,
                                     BackColor = timeBackground,
                                     Font = np60Label.Font,
+                                    DropShadowDistance = dropShadowSize,
                                     TextAlign = ContentAlignment.MiddleCenter
                                 });
                             }
@@ -558,7 +562,7 @@ namespace EPG
             grid.Controls.Add(blank2);
 
             Box datePanel = new Box();
-            Label dateLabel = new OutlineLabel();
+            OutlineLabel dateLabel = new OutlineLabel();
             datePanel.Top = newPlus60TimeSlot.Bottom;
             datePanel.Width = timeslotwidth * 3;
             datePanel.Height = clockPanel.Height;
@@ -569,12 +573,14 @@ namespace EPG
             datePanel.BorderColor = gridForeground;
             datePanel.NoPause = true;
             dateLabel.Top = BoxBorderSize;
-            dateLabel.Left = BoxBorderSize  ;
+            dateLabel.Left = BoxBorderSize;
             dateLabel.Height = datePanel.Height - (BoxBorderSize * 2);
             dateLabel.Width = datePanel.Width - (BoxBorderSize * 2);
             dateLabel.Font = font;
             dateLabel.ForeColor = timeForeground;
             dateLabel.TextAlign = ContentAlignment.MiddleCenter;
+            dateLabel.BorderSize = BoxBorderSize;
+            dateLabel.DropShadowDistance = dropShadowSize;
             dateLabel.Text = DateTime.Now.ToString("dddd MMMM d yyyy");
             datePanel.Controls.Add(dateLabel);
             grid.Controls.Add(datePanel);
@@ -660,9 +666,11 @@ namespace EPG
                                 Height = channelPanel.Height
                             };
 
-                            Label programLabel = new Label()
+                            Label programLabel = new OutlineLabel()
                             {
-                                Text = program.EventName
+                                Text = program.EventName,
+                                DropShadowDistance = dropShadowSize,
+                                BorderSize = FontOutlineSize
                             };
                             if (programStartTime < currentTimeSlot && programEndTime > secondTimeSlot + new TimeSpan(0, 30, 0))
                             {
@@ -1142,6 +1150,7 @@ namespace EPG
                         int tempbordersize = Convert.ToInt32(item["BoxBorderSize"].InnerText);
                         clockPanel.Width = Convert.ToInt32(item["ClockWidth"].InnerText);
                         float tempfontoutlinesize = (float)Convert.ToDouble(item["FontOutlineSize"].InnerText);
+                        //float tempfontdropshadowsize = (float)Convert.ToDouble(item["DropShadowSize"].InnerText);
                         string tempLogo = item["LogoPath"].InnerText;
                         
                         bool fullscreen = Convert.ToBoolean(item["Fullscreen"].InnerText);
@@ -1156,6 +1165,7 @@ namespace EPG
                             FontOutlineSize = tempfontoutlinesize;
                             endLogo = tempLogo;
                             channelRowHeight = tempchrowheight;
+                            //dropShadowSize = tempfontdropshadowsize;
                             if (fullscreen)
                             {
                                 this.FormBorderStyle = FormBorderStyle.None;
