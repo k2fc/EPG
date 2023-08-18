@@ -12,6 +12,7 @@ namespace EPG
     {
         public int BorderSize { get; set; } = 5;
         public Color BorderColor { get; set; } = Color.White;
+        public bool NoPause { get; set; } = false;
         public Box() : base()
         {
             base.BorderStyle = BorderStyle.None;

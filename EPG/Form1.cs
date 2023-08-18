@@ -198,7 +198,7 @@ namespace EPG
                         
                             if (box.Bottom + grid.Top > grids.Height && box.Top + grid.Top > 0) // row is partially visible
                             {
-                                if (!foundnextpause& box.GetType() == typeof(Box))
+                                if (!foundnextpause& box.GetType() == typeof(Box) && !((Box)box).NoPause)
                                 {
                                     pauseatgrid = grid;
                                     pauseatbox = box;
@@ -219,7 +219,7 @@ namespace EPG
 
                             if (box.Bottom + grid.Top > grids.Height && box.Top + grid.Top > 0)
                             {
-                                if (!foundnextpause && box.GetType() == typeof(Box))
+                                if (!foundnextpause && box.GetType() == typeof(Box) && !((Box)box).NoPause)
                                 {
                                     pauseatgrid = grid;
                                     pauseatbox = box;
@@ -466,7 +466,8 @@ namespace EPG
                 BackColor = gridBackground,
                 BorderStyle = BorderStyle.None,
                 BorderSize = BoxBorderSize,
-                BorderColor = gridForeground
+                BorderColor = gridForeground,
+                NoPause = true
             };
             grid.Controls.Add(blank);
 
@@ -476,6 +477,7 @@ namespace EPG
             newCurrentTimeSlot.Height = clockPanel.Height;
             newCurrentTimeSlot.BorderSize = BoxBorderSize;
             newCurrentTimeSlot.BorderColor = gridForeground;
+            newCurrentTimeSlot.NoPause = true;
             newCurrentTSLabel.Width = newCurrentTimeSlot.Width - (BoxBorderSize * 2);
             newCurrentTSLabel.Left = BoxBorderSize;
             newCurrentTSLabel.Height = newCurrentTimeSlot.Height - (BoxBorderSize * 2);
@@ -496,6 +498,7 @@ namespace EPG
             newPlus30TimeSlot.Height = newCurrentTimeSlot.Height;
             newPlus30TimeSlot.BorderSize = BoxBorderSize;
             newPlus30TimeSlot.BorderColor = gridForeground;
+            newPlus30TimeSlot.NoPause = true;
             newPlus30TSLabel.Width = newPlus30TimeSlot.Width - (BoxBorderSize * 2);
             newPlus30TSLabel.Left = BoxBorderSize;
             newPlus30TSLabel.Height = newPlus30TimeSlot.Height - (BoxBorderSize * 2);
@@ -516,6 +519,7 @@ namespace EPG
             newPlus60TimeSlot.Height = newPlus30TimeSlot.Height;
             newPlus60TimeSlot.BorderSize = BoxBorderSize;
             newPlus60TimeSlot.BorderColor = gridForeground;
+            newPlus60TimeSlot.NoPause = true;
             newPlus60TSLabel.Width = newPlus60TimeSlot.Width - (BoxBorderSize * 2);
             newPlus60TSLabel.Left = BoxBorderSize;
             newPlus60TSLabel.Height = newPlus60TimeSlot.Height - (BoxBorderSize * 2);
@@ -548,7 +552,8 @@ namespace EPG
                 BackColor = gridBackground,
                 BorderStyle = BorderStyle.None,
                 BorderSize = BoxBorderSize,
-                BorderColor = gridForeground
+                BorderColor = gridForeground,
+                NoPause = true
             };
             grid.Controls.Add(blank2);
 
@@ -562,6 +567,7 @@ namespace EPG
             datePanel.BorderStyle = BorderStyle.None;
             datePanel.BorderSize = BoxBorderSize;
             datePanel.BorderColor = gridForeground;
+            datePanel.NoPause = true;
             dateLabel.Top = BoxBorderSize;
             dateLabel.Left = BoxBorderSize  ;
             dateLabel.Height = datePanel.Height - (BoxBorderSize * 2);
@@ -928,7 +934,7 @@ namespace EPG
                 
                 gridBottom = channelPanel.Bottom;
             }
-            Panel endPanel = new Box() { BorderSize = BoxBorderSize, BorderColor = gridForeground };
+            Box endPanel = new Box() { BorderSize = BoxBorderSize, BorderColor = gridForeground };
             Label endLabel = new OutlineLabel();
             endPanel.Width = (grid.Width / 4) * 4;
             endPanel.Height = topRowHeight;
@@ -936,6 +942,7 @@ namespace EPG
             endPanel.Left = 0;
             endPanel.BackColor = endBackground;
             endPanel.BorderStyle = BorderStyle.None;
+            endPanel.NoPause = true;
             endPanel.SendToBack();
             endLabel.Width = endPanel.Width - (BoxBorderSize * 2);
             endLabel.Height = endPanel.Height - (BoxBorderSize * 2);
