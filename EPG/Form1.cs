@@ -579,7 +579,7 @@ namespace EPG
             dateLabel.Font = font;
             dateLabel.ForeColor = timeForeground;
             dateLabel.TextAlign = ContentAlignment.MiddleCenter;
-            dateLabel.BorderSize = BoxBorderSize;
+            dateLabel.BorderSize = FontOutlineSize;
             dateLabel.DropShadowDistance = dropShadowSize;
             dateLabel.Text = DateTime.Now.ToString("dddd MMMM d yyyy");
             datePanel.Controls.Add(dateLabel);
