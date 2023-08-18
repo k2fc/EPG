@@ -10,21 +10,22 @@
     <EndBackground>128,128,128</EndBackground>
     <EndForeground>255,255,255</EndForeground>
     <Font>PrevueC</Font>
-    <FontSize>22</FontSize>
-    <Speed>1.8</Speed>
+    <FontSize>16</FontSize>
+    <Speed>1.2</Speed>
     <PauseLength>4</PauseLength>
     <GridMargin>17</GridMargin>
     <GridVerticalStart>55</GridVerticalStart>
-    <TopRowHeight>45</TopRowHeight>
-    <ChannelRowHeight>85</ChannelRowHeight>
+    <TopRowHeight>29</TopRowHeight>
+    <ChannelRowHeight>58</ChannelRowHeight>
     <TextMargin>5</TextMargin>
-    <Fullscreen>True</Fullscreen>
+    <Fullscreen>true</Fullscreen>
     <LookAhead>5</LookAhead>
     <GetListingsInverval>60</GetListingsInverval>
     <EndText>This text is at the end.</EndText>
-    <BoxBorderSize>6</BoxBorderSize>
-    <FontOutlineSize>2.5</FontOutlineSize>
+    <BoxBorderSize>3</BoxBorderSize>
+    <FontOutlineSize>1</FontOutlineSize>
     <LogoPath>path_to_logo.png</LogoPath>
-    <ClockWidth>256</ClockWidth>
+    <ClockWidth>127</ClockWidth>
+    <DropShadowSize>2</DropShadowSize>
   </settings>
 </epg>

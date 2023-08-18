@@ -42,8 +42,8 @@ namespace EPG
         private Panel gridTimePlus60 = new Box();
         private Panel topRow = new Panel();
         private readonly Box clockPanel = new Box();
-        private readonly Label clock = new OutlineLabel();
-        private readonly Label title = new OutlineLabel();
+        private readonly OutlineLabel clock = new OutlineLabel();
+        private readonly OutlineLabel title = new OutlineLabel();
         private IEnumerable<TVStation> stations;
         private Panel grids = new Panel();
         private string runReference;
@@ -103,6 +103,8 @@ namespace EPG
             clock.TextAlign = ContentAlignment.MiddleRight;
             clock.Font = font;
             clock.ForeColor = gridForeground;
+            clock.BorderSize = FontOutlineSize;
+            clock.DropShadowDistance = dropShadowSize;
             clockPanel.Visible = true;
             clockPanel.BackColor = timeBackground;
             clockPanel.BorderStyle = BorderStyle.None;
@@ -303,9 +305,9 @@ namespace EPG
                                     BorderColor = gridForeground
                                 };
                                 topRow.Controls.Add(nextP60);
-                                var ncLabel = grid.newCurrentTimeSlot.Controls[0] as Label;
-                                var np30Label = grid.newPlus30TimeSlot.Controls[0] as Label;
-                                var np60Label = grid.newPlus60TimeSlot.Controls[0] as Label;
+                                var ncLabel = grid.newCurrentTimeSlot.Controls[0] as OutlineLabel;
+                                var np30Label = grid.newPlus30TimeSlot.Controls[0] as OutlineLabel;
+                                var np60Label = grid.newPlus60TimeSlot.Controls[0] as OutlineLabel;
                                 nextCurrent.Controls.Add(new OutlineLabel()
                                 {
                                     Top = BoxBorderSize,
@@ -317,6 +319,7 @@ namespace EPG
                                     BackColor = timeBackground,
                                     Font = ncLabel.Font,
                                     DropShadowDistance = dropShadowSize,
+                                    BorderSize = FontOutlineSize,
                                     TextAlign = ContentAlignment.MiddleCenter
                                 });
                                 nextP30.Controls.Add(new OutlineLabel()
@@ -330,6 +333,7 @@ namespace EPG
                                     BackColor = timeBackground,
                                     Font = np30Label.Font,
                                     DropShadowDistance = dropShadowSize,
+                                    BorderSize = FontOutlineSize,
                                     TextAlign = ContentAlignment.MiddleCenter
                                 });
                                 nextP60.Controls.Add(new OutlineLabel()
@@ -343,6 +347,7 @@ namespace EPG
                                     BackColor = timeBackground,
                                     Font = np60Label.Font,
                                     DropShadowDistance = dropShadowSize,
+                                    BorderSize = FontOutlineSize,
                                     TextAlign = ContentAlignment.MiddleCenter
                                 });
                             }
@@ -452,9 +457,9 @@ namespace EPG
             Box newCurrentTimeSlot = new Box();
             Box newPlus30TimeSlot = new Box();
             Box newPlus60TimeSlot = new Box();
-            Label newCurrentTSLabel = new OutlineLabel();
-            Label newPlus30TSLabel = new OutlineLabel();
-            Label newPlus60TSLabel = new OutlineLabel();
+            OutlineLabel newCurrentTSLabel = new OutlineLabel();
+            OutlineLabel newPlus30TSLabel = new OutlineLabel();
+            OutlineLabel newPlus60TSLabel = new OutlineLabel();
 
             curTime = DateTime.Now;
             currentTimeSlot = RoundDown(curTime+TimeSpan.FromMinutes(lookahead), TimeSpan.FromMinutes(30));
@@ -489,6 +494,8 @@ namespace EPG
             newCurrentTSLabel.TextAlign = ContentAlignment.MiddleCenter;
             newCurrentTSLabel.Font = font;
             newCurrentTSLabel.ForeColor = timeForeground;
+            newCurrentTSLabel.BorderSize = FontOutlineSize;
+            newCurrentTSLabel.DropShadowDistance = dropShadowSize;
             newCurrentTSLabel.Text = currentTimeSlot.ToString("h:mm tt");
             newCurrentTimeSlot.Visible = true;
             newCurrentTimeSlot.BackColor = gridBackground;
@@ -510,6 +517,8 @@ namespace EPG
             newPlus30TSLabel.TextAlign = ContentAlignment.MiddleCenter;
             newPlus30TSLabel.Font = font;
             newPlus30TSLabel.ForeColor = timeForeground;
+            newPlus30TSLabel.BorderSize = FontOutlineSize;
+            newPlus30TSLabel.DropShadowDistance = dropShadowSize;
             newPlus30TSLabel.Text = nextTimeSlot.ToString("h:mm tt");
             newPlus30TimeSlot.Visible = true;
             newPlus30TimeSlot.BackColor = gridBackground;
@@ -530,6 +539,8 @@ namespace EPG
             newPlus60TSLabel.Top = BoxBorderSize;
             newPlus60TSLabel.TextAlign = ContentAlignment.MiddleCenter;
             newPlus60TSLabel.Font = font;
+            newPlus60TSLabel.ForeColor = timeForeground;
+            newPlus60TSLabel.BorderSize = FontOutlineSize;
             newPlus60TSLabel.ForeColor = timeForeground;
             newPlus60TSLabel.Text = secondTimeSlot.ToString("h:mm tt");
             newPlus60TimeSlot.Visible = true;
@@ -605,8 +616,8 @@ namespace EPG
             foreach (TVStation channel in stationList)
             {
                 Box channelPanel = new Box();
-                Label channelNum = new OutlineLabel();
-                Label channelName = new OutlineLabel();
+                OutlineLabel channelNum = new OutlineLabel();
+                OutlineLabel channelName = new OutlineLabel();
 
                 channelPanel.Left = 0;
                 channelPanel.Width = clockPanel.Width;
@@ -623,6 +634,8 @@ namespace EPG
                 channelNum.Height = (channelPanel.Height / 2) - BoxBorderSize;
                 channelNum.Font = font;
                 channelNum.ForeColor = timeForeground;
+                channelNum.BorderSize = FontOutlineSize;
+                channelNum.DropShadowDistance = dropShadowSize;
                 channelNum.TextAlign = ContentAlignment.MiddleCenter;
                 if (channel.MinorChannelNumber > -1)
                     channelNum.Text = channel.TransportStreamID.ToString() + "." + channel.MinorChannelNumber.ToString();
@@ -638,6 +651,8 @@ namespace EPG
                 channelName.Height = (channelPanel.Height / 2) - BoxBorderSize;
                 channelName.Font = font;
                 channelName.ForeColor = timeForeground;
+                channelName.BorderSize = FontOutlineSize;
+                channelName.DropShadowDistance = dropShadowSize;
                 channelName.Text = channel.Name;
                 channelName.TextAlign = ContentAlignment.MiddleCenter;
                 channelPanel.Controls.Add(channelNum);
@@ -897,7 +912,7 @@ namespace EPG
                     if (noprograms)
                     {
                         Box staticPanel = new Box() { BorderSize = BoxBorderSize, BorderColor = gridForeground };
-                        Label staticLabel = new OutlineLabel();
+                        OutlineLabel staticLabel = new OutlineLabel();
                         staticPanel.Width = timeslotwidth * 3;
                         staticPanel.Height = channelPanel.Height;
                         staticPanel.Top = channelPanel.Top;
@@ -911,6 +926,8 @@ namespace EPG
                         staticLabel.Top = BoxBorderSize;
                         staticLabel.ForeColor = gridForeground;
                         staticLabel.Font = font;
+                        staticLabel.BorderSize = FontOutlineSize;
+                        staticLabel.DropShadowDistance = dropShadowSize;
                         staticLabel.TextAlign = ContentAlignment.TopLeft;
                         staticLabel.Text = "Data Unavailable";
                         staticPanel.Controls.Add(staticLabel);
@@ -920,7 +937,7 @@ namespace EPG
                 catch
                 {
                     Panel staticPanel = new Box() { BorderSize = BoxBorderSize, BorderColor = gridForeground };
-                    Label staticLabel = new OutlineLabel();
+                    OutlineLabel staticLabel = new OutlineLabel();
                     staticPanel.Width = channelPanel.Width * 3;
                     staticPanel.Height = channelPanel.Height;
                     staticPanel.Top = channelPanel.Top;
@@ -934,6 +951,8 @@ namespace EPG
                     staticLabel.Top = BoxBorderSize;
                     staticLabel.ForeColor = gridForeground;
                     staticLabel.Font = font;
+                    staticLabel.BorderSize = FontOutlineSize;
+                    staticLabel.DropShadowDistance = dropShadowSize;
                     staticLabel.TextAlign = ContentAlignment.TopLeft;
                     staticLabel.Text = "Data Unavailable";
                     staticPanel.Controls.Add(staticLabel);
@@ -943,7 +962,7 @@ namespace EPG
                 gridBottom = channelPanel.Bottom;
             }
             Box endPanel = new Box() { BorderSize = BoxBorderSize, BorderColor = gridForeground };
-            Label endLabel = new OutlineLabel();
+            OutlineLabel endLabel = new OutlineLabel();
             endPanel.Width = (grid.Width / 4) * 4;
             endPanel.Height = topRowHeight;
             endPanel.Top = gridBottom;
@@ -958,6 +977,8 @@ namespace EPG
             endLabel.Top = BoxBorderSize;
             endLabel.ForeColor = endForeground;
             endLabel.Font = font;
+            endLabel.BorderSize = FontOutlineSize;
+            endLabel.DropShadowDistance = dropShadowSize;
             endLabel.TextAlign = ContentAlignment.MiddleCenter;
             endLabel.Text = endText;
             endPanel.Controls.Add(endLabel);
@@ -965,6 +986,8 @@ namespace EPG
             grid.Controls.Add(endPanel);
 
             title.Text = titletext;
+            title.DropShadowDistance = dropShadowSize;
+            title.BorderSize = FontOutlineSize;
 
             if (!string.IsNullOrEmpty(endLogo))
             {
@@ -1029,6 +1052,8 @@ namespace EPG
             clock.TextAlign = ContentAlignment.MiddleRight;
             clock.Font = font;
             clock.ForeColor = gridForeground;
+            clock.BorderSize = FontOutlineSize;
+            clock.DropShadowDistance = dropShadowSize;
             clockPanel.Visible = true;
             clockPanel.BackColor = timeBackground;
             clockPanel.BorderStyle = BorderStyle.None;
@@ -1150,13 +1175,13 @@ namespace EPG
                         int tempbordersize = Convert.ToInt32(item["BoxBorderSize"].InnerText);
                         clockPanel.Width = Convert.ToInt32(item["ClockWidth"].InnerText);
                         float tempfontoutlinesize = (float)Convert.ToDouble(item["FontOutlineSize"].InnerText);
-                        //float tempfontdropshadowsize = (float)Convert.ToDouble(item["DropShadowSize"].InnerText);
+                        float tempfontdropshadowsize = (float)Convert.ToDouble(item["DropShadowSize"].InnerText);
                         string tempLogo = item["LogoPath"].InnerText;
                         
                         bool fullscreen = Convert.ToBoolean(item["Fullscreen"].InnerText);
 
                         if (tempgridmargin != gridMargin || tempverticalstart != gridVerticalStart || temprowheight != topRowHeight || (this.FormBorderStyle == FormBorderStyle.None) != fullscreen||
-                            BoxBorderSize != tempbordersize || FontOutlineSize != tempfontoutlinesize || endLogo != tempLogo || channelRowHeight != tempchrowheight)
+                            BoxBorderSize != tempbordersize || FontOutlineSize != tempfontoutlinesize || endLogo != tempLogo || channelRowHeight != tempchrowheight || dropShadowSize != tempfontdropshadowsize)
                         {
                             gridMargin = tempgridmargin;
                             gridVerticalStart = tempverticalstart;
@@ -1165,7 +1190,7 @@ namespace EPG
                             FontOutlineSize = tempfontoutlinesize;
                             endLogo = tempLogo;
                             channelRowHeight = tempchrowheight;
-                            //dropShadowSize = tempfontdropshadowsize;
+                            dropShadowSize = tempfontdropshadowsize;
                             if (fullscreen)
                             {
                                 this.FormBorderStyle = FormBorderStyle.None;
