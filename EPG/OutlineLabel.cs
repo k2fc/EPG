@@ -128,7 +128,12 @@ namespace EPG
                     this.point.Y = this.Height - (this.Padding.Bottom + this.drawSize.Height);
                 else point.Y = (this.Height - this.drawSize.Height) / 2;
             }
-            var rect = new RectangleF(point, this.drawSize);
+            var innersize = new SizeF()
+            {
+                Width = this.Width - (this.Padding.Left + this.Padding.Right),
+                Height = this.Height - (this.Padding.Top + this.Padding.Bottom)
+            };
+            var rect = new RectangleF(point, innersize);
             float fontSize = e.Graphics.DpiY * this.Font.SizeInPoints / 72;
 
             this.drawPath.Reset();
@@ -139,7 +144,7 @@ namespace EPG
             offsetrect = new RectangleF()
             {
                 Location = new PointF(point.X + this.dropShadowDistance, point.Y + this.dropShadowDistance),
-                Size = rect.Size
+                Size = innersize
             };
             this.shadowPath.Reset();
             this.shadowPath.AddString(this.Text, this.Font.FontFamily, (int)this.Font.Style, fontSize, offsetrect, sf);
