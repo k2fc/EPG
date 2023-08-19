@@ -53,6 +53,7 @@ namespace EPG
         private int topRowHeight = 34;
         private int channelRowHeight = 56;
         private int lookahead = 0;
+        private bool bordergradient = false;
         private Color background;
         private Color timeBackground;
         private Color timeForeground;
@@ -280,7 +281,8 @@ namespace EPG
                                     Top = topRow.Height,
                                     BackColor = timeBackground,
                                     BorderSize = BoxBorderSize,
-                                    BorderColor = gridForeground
+                                    BorderColor = gridForeground,
+                                    BorderGradient = bordergradient
                                 };
                                 topRow.Controls.Add(nextCurrent);
                                 nextP30 = new Box()
@@ -291,7 +293,8 @@ namespace EPG
                                     Top = topRow.Height,
                                     BackColor = timeBackground,
                                     BorderSize = BoxBorderSize,
-                                    BorderColor = gridForeground
+                                    BorderColor = gridForeground,
+                                    BorderGradient = bordergradient
                                 };
                                 topRow.Controls.Add(nextP30);
                                 nextP60 = new Box()
@@ -302,7 +305,8 @@ namespace EPG
                                     Top = topRow.Height,
                                     BackColor = timeBackground,
                                     BorderSize = BoxBorderSize,
-                                    BorderColor = gridForeground
+                                    BorderColor = gridForeground,
+                                    BorderGradient = bordergradient
                                 };
                                 topRow.Controls.Add(nextP60);
                                 var ncLabel = grid.newCurrentTimeSlot.Controls[0] as OutlineLabel;
@@ -476,6 +480,7 @@ namespace EPG
                 BorderStyle = BorderStyle.None,
                 BorderSize = BoxBorderSize,
                 BorderColor = gridForeground,
+                BorderGradient = bordergradient,
                 NoPause = true
             };
             grid.Controls.Add(blank);
@@ -498,6 +503,7 @@ namespace EPG
             newCurrentTSLabel.DropShadowDistance = dropShadowSize;
             newCurrentTSLabel.Text = currentTimeSlot.ToString("h:mm tt");
             newCurrentTimeSlot.Visible = true;
+            newCurrentTimeSlot.BorderGradient = bordergradient;
             newCurrentTimeSlot.BackColor = gridBackground;
             newCurrentTimeSlot.BorderStyle = BorderStyle.None;
             newCurrentTimeSlot.Controls.Add(newCurrentTSLabel);
@@ -521,6 +527,7 @@ namespace EPG
             newPlus30TSLabel.DropShadowDistance = dropShadowSize;
             newPlus30TSLabel.Text = nextTimeSlot.ToString("h:mm tt");
             newPlus30TimeSlot.Visible = true;
+            newPlus30TimeSlot.BorderGradient = bordergradient;
             newPlus30TimeSlot.BackColor = gridBackground;
             newPlus30TimeSlot.BorderStyle = BorderStyle.None;
             newPlus30TimeSlot.Controls.Add(newPlus30TSLabel);
@@ -544,6 +551,7 @@ namespace EPG
             newPlus60TSLabel.ForeColor = timeForeground;
             newPlus60TSLabel.Text = secondTimeSlot.ToString("h:mm tt");
             newPlus60TimeSlot.Visible = true;
+            newPlus60TimeSlot.BorderGradient = bordergradient;
             newPlus60TimeSlot.BackColor = gridBackground;
             newPlus60TimeSlot.BorderStyle = BorderStyle.None;
             newPlus60TimeSlot.Controls.Add(newPlus60TSLabel);
@@ -568,7 +576,8 @@ namespace EPG
                 BorderStyle = BorderStyle.None,
                 BorderSize = BoxBorderSize,
                 BorderColor = gridForeground,
-                NoPause = true
+                NoPause = true,
+                BorderGradient = bordergradient
             };
             grid.Controls.Add(blank2);
 
@@ -583,6 +592,7 @@ namespace EPG
             datePanel.BorderSize = BoxBorderSize;
             datePanel.BorderColor = gridForeground;
             datePanel.NoPause = true;
+            datePanel.BorderGradient = bordergradient;
             dateLabel.Top = BoxBorderSize;
             dateLabel.Left = BoxBorderSize;
             dateLabel.Height = datePanel.Height - (BoxBorderSize * 2);
@@ -627,6 +637,7 @@ namespace EPG
                 channelPanel.BorderStyle = BorderStyle.None;
                 channelPanel.BorderSize = BoxBorderSize;
                 channelPanel.BorderColor = gridForeground;
+                channelPanel.BorderGradient = bordergradient;
                 channelNum.AutoSize = false;
                 channelNum.Top = BoxBorderSize;
                 channelNum.Left = BoxBorderSize;
@@ -678,7 +689,8 @@ namespace EPG
                                 BorderSize = BoxBorderSize, 
                                 BorderColor = gridForeground ,
                                 Top = channelPanel.Top,
-                                Height = channelPanel.Height
+                                Height = channelPanel.Height,
+                                BorderGradient = bordergradient
                             };
 
                             Label programLabel = new OutlineLabel()
@@ -911,7 +923,12 @@ namespace EPG
                     }
                     if (noprograms)
                     {
-                        Box staticPanel = new Box() { BorderSize = BoxBorderSize, BorderColor = gridForeground };
+                        Box staticPanel = new Box() 
+                        { 
+                            BorderSize = BoxBorderSize, 
+                            BorderColor = gridForeground,
+                            BorderGradient = bordergradient
+                        };
                         OutlineLabel staticLabel = new OutlineLabel();
                         staticPanel.Width = timeslotwidth * 3;
                         staticPanel.Height = channelPanel.Height;
@@ -936,7 +953,12 @@ namespace EPG
                 }
                 catch
                 {
-                    Panel staticPanel = new Box() { BorderSize = BoxBorderSize, BorderColor = gridForeground };
+                    Panel staticPanel = new Box() 
+                    { 
+                        BorderSize = BoxBorderSize, 
+                        BorderColor = gridForeground,
+                        BorderGradient = bordergradient
+                    };
                     OutlineLabel staticLabel = new OutlineLabel();
                     staticPanel.Width = channelPanel.Width * 3;
                     staticPanel.Height = channelPanel.Height;
@@ -961,7 +983,12 @@ namespace EPG
                 
                 gridBottom = channelPanel.Bottom;
             }
-            Box endPanel = new Box() { BorderSize = BoxBorderSize, BorderColor = gridForeground };
+            Box endPanel = new Box() 
+            { 
+                BorderSize = BoxBorderSize, 
+                BorderColor = gridForeground,
+                BorderGradient = bordergradient
+            };
             OutlineLabel endLabel = new OutlineLabel();
             endPanel.Width = (grid.Width / 4) * 4;
             endPanel.Height = topRowHeight;
@@ -1057,6 +1084,7 @@ namespace EPG
             clockPanel.Visible = true;
             clockPanel.BackColor = timeBackground;
             clockPanel.BorderStyle = BorderStyle.None;
+            clockPanel.BorderGradient = bordergradient;
             clockPanel.Controls.Add(clock);
             gridTimeCurrent.Top = this.Height;
             grids.Top = topRow.Bottom;
@@ -1179,6 +1207,7 @@ namespace EPG
                         string tempLogo = item["LogoPath"].InnerText;
                         
                         bool fullscreen = Convert.ToBoolean(item["Fullscreen"].InnerText);
+                        bordergradient = Convert.ToBoolean(item["BorderGradient"].InnerText);
 
                         if (tempgridmargin != gridMargin || tempverticalstart != gridVerticalStart || temprowheight != topRowHeight || (this.FormBorderStyle == FormBorderStyle.None) != fullscreen||
                             BoxBorderSize != tempbordersize || FontOutlineSize != tempfontoutlinesize || endLogo != tempLogo || channelRowHeight != tempchrowheight || dropShadowSize != tempfontdropshadowsize)

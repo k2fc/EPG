@@ -27,5 +27,6 @@
     <LogoPath>path_to_logo.png</LogoPath>
     <ClockWidth>127</ClockWidth>
     <DropShadowSize>2</DropShadowSize>
+    <BorderGradient>false</BorderGradient>
   </settings>
 </epg>
