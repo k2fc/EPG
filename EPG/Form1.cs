@@ -437,7 +437,21 @@ namespace EPG
 
             timer1.Start();
         }
+        protected override void OnKeyDown(KeyEventArgs e)
+        {
+            if (e.KeyCode == Keys.Up)
+            {
+                speed = (float)(speed + .1);
+                title.Text = speed.ToString();
+            }
+            else if (e.KeyCode == Keys.Down)
+            {
+                speed = (float)(speed - .1);
+                title.Text = speed.ToString();
+            }
 
+            base.OnKeyDown(e);
+        }
         public static DateTime RoundDown(DateTime dt, TimeSpan d)
         {
             var delta = dt.Ticks % d.Ticks;
