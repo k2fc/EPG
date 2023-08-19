@@ -13,6 +13,9 @@ namespace EPG
         public Panel newCurrentTimeSlot;
         public Panel newPlus30TimeSlot;
         public Panel newPlus60TimeSlot;
-
+        public Grid() : base()
+        {
+            this.DoubleBuffered = true;
+        }
     }
 }

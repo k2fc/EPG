@@ -45,7 +45,7 @@ namespace EPG
         private readonly OutlineLabel clock = new OutlineLabel();
         private readonly OutlineLabel title = new OutlineLabel();
         private IEnumerable<TVStation> stations;
-        private Panel grids = new Panel();
+        private Panel grids = new Grid();
         private string runReference;
         private Mutex cancelMutex;
         private int gridMargin = 25;
@@ -85,6 +85,7 @@ namespace EPG
         public Form1()
         {
             InitializeComponent();
+            this.DoubleBuffered = true;
             this.WindowState = FormWindowState.Maximized;
             GetSettings();
 

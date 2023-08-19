@@ -35,6 +35,7 @@ namespace EPG
             this.drawPen = new Pen(new SolidBrush(this.borderColor), borderSize);
             this.forecolorBrush = new SolidBrush(this.ForeColor);
             this.shadowBrush = new SolidBrush(this.borderColor);
+            this.DoubleBuffered = true;
             this.Invalidate();
         }
         [Browsable(false)]

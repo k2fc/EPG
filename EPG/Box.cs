@@ -17,6 +17,7 @@ namespace EPG
         public Box() : base()
         {
             base.BorderStyle = BorderStyle.None;
+            DoubleBuffered = true;
         }
         protected override void OnPaint(PaintEventArgs e)
         {
