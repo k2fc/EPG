@@ -2,12 +2,12 @@
 <epg>
   <settings>
     <Title>PROGRAM GUIDE</Title>
-    <BackColor>0,0,51</BackColor>
-    <TimeBackground>34,51,136</TimeBackground>
-    <TimeForeground>204,204,0</TimeForeground>
-    <GridBackground>0,0,51</GridBackground>
-    <GridForeground>170,170,170</GridForeground>
-    <EndBackground>128,128,128</EndBackground>
+    <BackColor>0,0,48</BackColor>
+    <TimeBackground>16,48,128</TimeBackground>
+    <TimeForeground>192,192,0</TimeForeground>
+    <GridBackground>0,0,48</GridBackground>
+    <GridForeground>160,160,160</GridForeground>
+    <EndBackground>160,160,160</EndBackground>
     <EndForeground>255,255,255</EndForeground>
     <Font>PrevueC</Font>
     <FontSize>16</FontSize>
