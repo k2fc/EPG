@@ -162,17 +162,23 @@ namespace EPG
         protected void timer1_Tick(object sender, EventArgs e)
         {
             timer1.Stop();
-            int frames = 1;
             if (stopwatch == null)
             {
                 stopwatch = new Stopwatch();
                 stopwatch.Start();
             }
-            else
+            curTime = DateTime.Now;
+            clock.Text = curTime.ToString("h:mm:ss");
+            var ms = stopwatch.ElapsedMilliseconds;
+            int frames = (int)(ms / 16.667);
+            int speed = (int)(frames * this.speed);
+            if (speed == 0)
             {
-                frames = (int)(stopwatch.ElapsedMilliseconds / 16.667);
-                stopwatch.Restart();
+                timer1.Start();
+                return;
             }
+            stopwatch.Restart();
+            
             curTime = DateTime.Now;
             clock.Text = curTime.ToString("h:mm:ss");
             foreach (Grid grid in grids.Controls)
@@ -263,7 +269,11 @@ namespace EPG
 
                 foreach (Grid grid in grids.Controls)
                 {
-                    int speed = (int)(frames * this.speed);
+                    
+                    if (speed > DistanceToPause())
+                    {
+                        speed = DistanceToPause();
+                    }
                     grid.Top -= speed;
                     
                     
@@ -415,7 +425,7 @@ namespace EPG
 
                     if (pauseatgrid != null && pauseatbox != null)
                     {
-                        if (pauseatbox.Top + pauseatgrid.Top <= 0)
+                        if (DistanceToPause() <= 0)
                         {
 
                             pauseuntil = curTime.AddSeconds(pauselength);
@@ -1160,6 +1170,10 @@ namespace EPG
                 }
             });
             return newList;
+        }
+        private int DistanceToPause()
+        {
+            return pauseatbox.Top + pauseatgrid.Top;
         }
 
         private void GetSettings()
