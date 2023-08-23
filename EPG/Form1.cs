@@ -188,7 +188,7 @@ namespace EPG
                 bool foundnextpause = false;
                 foreach (Grid grid in grids.Controls)
                 {
-                    if (grid.Bottom < 0)
+                    if (grid.Bottom <= 0)
                     {
                         foreach (Control control in grid.Controls)
                         {
