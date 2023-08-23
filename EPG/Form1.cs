@@ -181,19 +181,6 @@ namespace EPG
             
             curTime = DateTime.Now;
             clock.Text = curTime.ToString("h:mm:ss");
-            foreach (Grid grid in grids.Controls)
-            {
-                if (grid.Bottom < 0)
-                {
-                    foreach (Control control in grid.Controls)
-                    {
-                        control.Dispose();
-                    }
-                    grid.Controls.Clear();
-                    grids.Controls.Remove(grid);
-                    grid.Dispose();
-                }
-            }
             if (paused) 
             {
                 if (curTime > pauseuntil)
@@ -201,8 +188,17 @@ namespace EPG
                 bool foundnextpause = false;
                 foreach (Grid grid in grids.Controls)
                 {
-                    
-                    if (grid.Bottom > grids.Height && grid.Top < 0) // grid is visible
+                    if (grid.Bottom < 0)
+                    {
+                        foreach (Control control in grid.Controls)
+                        {
+                            control.Dispose();
+                        }
+                        grid.Controls.Clear();
+                        grids.Controls.Remove(grid);
+                        grid.Dispose();
+                    }
+                    else if (grid.Bottom > grids.Height && grid.Top < 0) // grid is visible
                     {
                         foreach (Control box in grid.Controls)
                         {
