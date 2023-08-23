@@ -419,16 +419,12 @@ namespace EPG
                     }
                     
 
-                    if (pauseatgrid != null && pauseatbox != null)
+                    if (DistanceToPause() <= 0)
                     {
-                        if (DistanceToPause() <= 0)
-                        {
+                        pauseuntil = curTime.AddSeconds(pauselength);
+                        paused = true;
+                        GetSettings();
 
-                            pauseuntil = curTime.AddSeconds(pauselength);
-                            paused = true;
-                            GetSettings();
-
-                        }
                     }
                     
                 }
@@ -1169,7 +1165,14 @@ namespace EPG
         }
         private int DistanceToPause()
         {
-            return pauseatbox.Top + pauseatgrid.Top;
+            if (pauseatbox != null)
+            {
+                return pauseatbox.Top + pauseatgrid.Top;
+            }
+            else 
+            {
+                return 0;
+            }
         }
 
         private void GetSettings()
