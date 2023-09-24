@@ -68,6 +68,7 @@ namespace EPG
         private float speed = 1;
         private int listingInterval = 0;
         private int BoxBorderSize = 0;
+        private int Overscan = 0;
         private float FontOutlineSize = 0;
         private float dropShadowSize = 2;
         private Bitmap dualArrowLeft;
@@ -352,7 +353,7 @@ namespace EPG
                                     Top = BoxBorderSize,
                                     Left = BoxBorderSize,
                                     Height = nextP60.Height - (BoxBorderSize * 2),
-                                    Width = nextP60.Width - (BoxBorderSize * 2),
+                                    Width = nextP60.Width - Overscan - (BoxBorderSize * 2),
                                     Text = np60Label.Text,
                                     ForeColor = timeForeground,
                                     BackColor = timeBackground,
@@ -486,7 +487,7 @@ namespace EPG
             currentTimeSlot = RoundDown(curTime+TimeSpan.FromMinutes(lookahead), TimeSpan.FromMinutes(30));
             nextTimeSlot = currentTimeSlot + TimeSpan.FromMinutes(30);
             secondTimeSlot = currentTimeSlot + TimeSpan.FromMinutes(60);
-            var timeslotwidth = (grid.Width - clockPanel.Width) / 3;
+            var timeslotwidth = (grid.Width - clockPanel.Width - Overscan) / 3;
             Panel blank = new Box
             {
                 Top = 0,
@@ -509,7 +510,7 @@ namespace EPG
             newCurrentTimeSlot.BorderSize = BoxBorderSize;
             newCurrentTimeSlot.BorderColor = gridForeground;
             newCurrentTimeSlot.NoPause = true;
-            newCurrentTSLabel.Width = newCurrentTimeSlot.Width - (BoxBorderSize * 2);
+            newCurrentTSLabel.Width = timeslotwidth - (BoxBorderSize * 2);
             newCurrentTSLabel.Left = BoxBorderSize;
             newCurrentTSLabel.Height = newCurrentTimeSlot.Height - (BoxBorderSize * 2);
             newCurrentTSLabel.Top = BoxBorderSize;
@@ -533,7 +534,7 @@ namespace EPG
             newPlus30TimeSlot.BorderSize = BoxBorderSize;
             newPlus30TimeSlot.BorderColor = gridForeground;
             newPlus30TimeSlot.NoPause = true;
-            newPlus30TSLabel.Width = newPlus30TimeSlot.Width - (BoxBorderSize * 2);
+            newPlus30TSLabel.Width = timeslotwidth - (BoxBorderSize * 2);
             newPlus30TSLabel.Left = BoxBorderSize;
             newPlus30TSLabel.Height = newPlus30TimeSlot.Height - (BoxBorderSize * 2);
             newPlus30TSLabel.Top = BoxBorderSize;
@@ -552,12 +553,12 @@ namespace EPG
 
             newPlus60TimeSlot.Top = blank.Top;
             newPlus60TimeSlot.Left = newPlus30TimeSlot.Right;
-            newPlus60TimeSlot.Width = timeslotwidth;
+            newPlus60TimeSlot.Width = timeslotwidth + Overscan;
             newPlus60TimeSlot.Height = newPlus30TimeSlot.Height;
             newPlus60TimeSlot.BorderSize = BoxBorderSize;
             newPlus60TimeSlot.BorderColor = gridForeground;
             newPlus60TimeSlot.NoPause = true;
-            newPlus60TSLabel.Width = newPlus60TimeSlot.Width - (BoxBorderSize * 2);
+            newPlus60TSLabel.Width = timeslotwidth - (BoxBorderSize * 2);
             newPlus60TSLabel.Left = BoxBorderSize;
             newPlus60TSLabel.Height = newPlus60TimeSlot.Height - (BoxBorderSize * 2);
             newPlus60TSLabel.Top = BoxBorderSize;
@@ -601,7 +602,7 @@ namespace EPG
             Box datePanel = new Box();
             OutlineLabel dateLabel = new OutlineLabel();
             datePanel.Top = newPlus60TimeSlot.Bottom;
-            datePanel.Width = timeslotwidth * 3;
+            datePanel.Width = grid.Width - clockPanel.Width;
             datePanel.Height = clockPanel.Height;
             datePanel.Left = blank.Right;
             datePanel.BackColor = gridBackground;
@@ -613,7 +614,7 @@ namespace EPG
             dateLabel.Top = BoxBorderSize;
             dateLabel.Left = BoxBorderSize;
             dateLabel.Height = datePanel.Height - (BoxBorderSize * 2);
-            dateLabel.Width = datePanel.Width - (BoxBorderSize * 2);
+            dateLabel.Width = datePanel.Width - Overscan - (BoxBorderSize * 2);
             dateLabel.Font = font;
             dateLabel.ForeColor = timeForeground;
             dateLabel.TextAlign = ContentAlignment.MiddleCenter;
@@ -657,8 +658,8 @@ namespace EPG
                 channelPanel.BorderGradient = bordergradient;
                 channelNum.AutoSize = false;
                 channelNum.Top = BoxBorderSize;
-                channelNum.Left = BoxBorderSize;
-                channelNum.Width = channelPanel.Width - (BoxBorderSize * 2);
+                channelNum.Left = BoxBorderSize + Overscan;
+                channelNum.Width = channelPanel.Width - (BoxBorderSize * 2) - Overscan;
                 channelNum.Height = (channelPanel.Height / 2) - BoxBorderSize;
                 channelNum.Font = font;
                 channelNum.ForeColor = timeForeground;
@@ -674,8 +675,8 @@ namespace EPG
                 channelNum.TextAlign = ContentAlignment.MiddleCenter;
                 channelName.AutoSize = false;
                 channelName.Top = channelNum.Bottom;
-                channelName.Left = BoxBorderSize;
-                channelName.Width = channelPanel.Width - (BoxBorderSize * 2);
+                channelName.Left = BoxBorderSize + Overscan;
+                channelName.Width = channelPanel.Width - (BoxBorderSize * 2) - Overscan;
                 channelName.Height = (channelPanel.Height / 2) - BoxBorderSize;
                 channelName.Font = font;
                 channelName.ForeColor = timeForeground;
@@ -716,7 +717,7 @@ namespace EPG
                                 DropShadowDistance = dropShadowSize,
                                 BorderSize = FontOutlineSize
                             };
-                            if (programStartTime < currentTimeSlot && programEndTime > secondTimeSlot + new TimeSpan(0, 30, 0))
+                            if (programStartTime < currentTimeSlot && programEndTime >= secondTimeSlot + new TimeSpan(0, 30, 0))
                             {
                                 programPanel.Left = channelPanel.Right;
                                 programPanel.Width = timeslotwidth * 3;
@@ -811,6 +812,7 @@ namespace EPG
                                     arrow.Left = programLabel.Right;
                                     programPanel.Controls.Add(arrow);
                                 }
+                                programPanel.Width += Overscan;
                             }
                             else if (programStartTime < currentTimeSlot)
                             {
@@ -863,7 +865,7 @@ namespace EPG
                                     programPanel.Controls.Add(arrow);
                                 }
                             }
-                            else if (programEndTime > secondTimeSlot + new TimeSpan(0,30,0))
+                            else if (programEndTime >= secondTimeSlot + new TimeSpan(0,30,0))
                             {
                                 programPanel.Left = channelPanel.Right + Convert.ToInt32(programStartTime.Subtract(currentTimeSlot).TotalMinutes) * timeslotwidth / 30;
                                 programPanel.Width = Convert.ToInt32(secondTimeSlot.AddMinutes(30).Subtract(programStartTime).TotalMinutes) * timeslotwidth / 30;
@@ -912,6 +914,7 @@ namespace EPG
                                     arrow.Left = programLabel.Right;
                                     programPanel.Controls.Add(arrow);
                                 }
+                                programPanel.Width += Overscan;
                             }
                             else
                             {
@@ -947,7 +950,7 @@ namespace EPG
                             BorderGradient = bordergradient
                         };
                         OutlineLabel staticLabel = new OutlineLabel();
-                        staticPanel.Width = timeslotwidth * 3;
+                        staticPanel.Width = timeslotwidth * 3 + Overscan;
                         staticPanel.Height = channelPanel.Height;
                         staticPanel.Top = channelPanel.Top;
                         staticPanel.Left = channelPanel.Right;
@@ -1229,6 +1232,7 @@ namespace EPG
                         int temprowheight = Convert.ToInt32(item["TopRowHeight"].InnerText);
                         int tempchrowheight = Convert.ToInt32(item["ChannelRowHeight"].InnerText);
                         int tempbordersize = Convert.ToInt32(item["BoxBorderSize"].InnerText);
+                        int tempoverscan = Convert.ToInt32(item["Overscan"].InnerText);
                         clockPanel.Width = Convert.ToInt32(item["ClockWidth"].InnerText);
                         float tempfontoutlinesize = (float)Convert.ToDouble(item["FontOutlineSize"].InnerText);
                         float tempfontdropshadowsize = (float)Convert.ToDouble(item["DropShadowSize"].InnerText);
@@ -1238,13 +1242,15 @@ namespace EPG
                         bordergradient = Convert.ToBoolean(item["BorderGradient"].InnerText);
 
                         if (tempgridmargin != gridMargin || tempverticalstart != gridVerticalStart || temprowheight != topRowHeight || (this.FormBorderStyle == FormBorderStyle.None) != fullscreen||
-                            BoxBorderSize != tempbordersize || FontOutlineSize != tempfontoutlinesize || endLogo != tempLogo || channelRowHeight != tempchrowheight || dropShadowSize != tempfontdropshadowsize)
+                            BoxBorderSize != tempbordersize || FontOutlineSize != tempfontoutlinesize || endLogo != tempLogo || channelRowHeight != tempchrowheight || dropShadowSize != tempfontdropshadowsize ||
+                            tempoverscan != Overscan)
                         {
                             gridMargin = tempgridmargin;
                             gridVerticalStart = tempverticalstart;
                             topRowHeight = temprowheight;
                             BoxBorderSize = tempbordersize;
-                            FontOutlineSize = tempfontoutlinesize;
+                            Overscan = tempoverscan;
+                            FontOutlineSize = tempfontoutlinesize; 
                             endLogo = tempLogo;
                             channelRowHeight = tempchrowheight;
                             dropShadowSize = tempfontdropshadowsize;
